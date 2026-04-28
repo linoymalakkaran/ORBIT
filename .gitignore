@@ -1,0 +1,69 @@
+# ── Node / Angular ──────────────────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+.nx/cache/
+coverage/
+*.tgz
+
+# ── .NET ────────────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.nupkg
+
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+*.egg-info/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Pulumi ──────────────────────────────────────────────────────────────────
+.pulumi/
+Pulumi.*.yaml.bak
+
+# ── Secrets / Credentials ───────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+.env.local
+.env.*.local
+vault-token
+kubeconfig
+**/appsettings.*.json
+!**/appsettings.json
+!**/appsettings.Development.json
+
+# ── OS / Editor ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+
+# ── Terraform (if used alongside Pulumi) ────────────────────────────────────
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# ── Docker ──────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── Test artefacts ──────────────────────────────────────────────────────────
+playwright-report/
+test-results/
+allure-results/

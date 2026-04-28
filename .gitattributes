@@ -1,0 +1,26 @@
+# Ensure consistent line endings across OS
+* text=auto eol=lf
+
+# Force LF for policy and config files
+*.rego    text eol=lf
+*.json    text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.md      text eol=lf
+*.sh      text eol=lf
+
+# Force CRLF for Windows-specific files
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# Binary files — no line ending conversion
+*.pdf     binary
+*.drawio  binary
+*.png     binary
+*.jpg     binary
+*.gif     binary
+*.ico     binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.eot     binary
