@@ -97,3 +97,8 @@ async def manual_check() -> Any:
     for ns in settings.namespaces.split(","):
         issues.extend(_check_namespace(ns.strip()))
     return {"issues": issues, "healthy": len(issues) == 0}
+
+
+@app.get("/health/ready")
+async def readiness():
+    return {"status": "ok"}

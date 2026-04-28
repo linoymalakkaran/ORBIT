@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-monitor-agent
+  namespace: ai-portal
+  labels: { app: health-monitor-agent }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: health-monitor-agent }
+  template:
+    metadata:
+      labels: { app: health-monitor-agent }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8000"
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "health-monitor-agent"
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      serviceAccountName: health-monitor-agent
+      containers:
+        - name: health-monitor-agent
+          image: harbor.ai.adports.ae/orbit/health-monitor-agent:latest
+          imagePullPolicy: Always
+          ports: [{ containerPort: 8000 }]
+          env:
+            - name: HEALTH_KAFKA_BOOTSTRAP_SERVERS
+              value: "orbit-kafka-kafka-bootstrap.kafka.svc:9092"
+            - name: HEALTH_KAFKA_TOPIC_ALERTS
+              value: "orbit.health.alerts"
+            - name: HEALTH_NAMESPACES
+              value: "ai-portal,ai-portal-data,monitoring"
+            - name: HEALTH_POLL_INTERVAL_SECONDS
+              value: "60"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "300m", memory: "256Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+      # kubectl binary is expected on the node or sidecar; using in-cluster config
+      volumes:
+        - name: kube-config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: health-monitor-agent
+  namespace: ai-portal
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: health-monitor-agent-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: health-monitor-agent-reader
+subjects:
+  - kind: ServiceAccount
+    name: health-monitor-agent
+    namespace: ai-portal
+roleRef:
+  kind: ClusterRole
+  name: health-monitor-agent-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-monitor-agent
+  namespace: ai-portal
+spec:
+  selector: { app: health-monitor-agent }
+  ports: [{ port: 80, targetPort: 8000 }]

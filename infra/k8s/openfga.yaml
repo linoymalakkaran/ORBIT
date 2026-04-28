@@ -1,0 +1,80 @@
+## OpenFGA — Fine-grained Authorization Service
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-portal
+  labels:
+    app.kubernetes.io/managed-by: argocd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openfga
+  namespace: ai-portal
+  labels: { app: openfga }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: openfga }
+  template:
+    metadata:
+      labels: { app: openfga }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "portal-api"
+        vault.hashicorp.com/agent-inject-secret-env: "secret/data/portal-api/openfga"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{- with secret "secret/data/portal-api/openfga" -}}
+          export OPENFGA_DATASTORE_URI="{{ .Data.data.postgres_uri }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: portal-api
+      containers:
+        - name: openfga
+          image: harbor.ai.adports.ae/orbit/openfga:v1.5.3
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/env && exec /app/openfga run"]
+          ports:
+            - containerPort: 8080  # HTTP
+            - containerPort: 8081  # gRPC
+            - containerPort: 2112  # metrics
+          env:
+            - name: OPENFGA_AUTHN_METHOD
+              value: "oidc"
+            - name: OPENFGA_AUTHN_OIDC_AUDIENCE
+              value: "portal-api"
+            - name: OPENFGA_AUTHN_OIDC_ISSUER
+              value: "https://auth.ai.adports.ae/realms/ai-portal"
+            - name: OPENFGA_DATASTORE_ENGINE
+              value: "postgres"
+            - name: OPENFGA_LOG_FORMAT
+              value: "json"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 15
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 10
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openfga
+  namespace: ai-portal
+spec:
+  selector: { app: openfga }
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: grpc
+      port: 8081
+      targetPort: 8081

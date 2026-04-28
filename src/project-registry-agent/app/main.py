@@ -110,6 +110,11 @@ async def liveness():
     return {"status": "ok"}
 
 
+@app.get("/health/ready")
+async def readiness():
+    return {"status": "ok"}
+
+
 @app.post("/api/sync/{project_path:path}")
 async def manual_sync(project_path: str) -> Any:
     await _sync_gitlab_project(project_path)

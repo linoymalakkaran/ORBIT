@@ -158,3 +158,321 @@ kind: ServiceAccount
 metadata:
   name: mcp-servers
   namespace: ai-portal
+---
+# Kubernetes MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubernetes-mcp
+  namespace: ai-portal
+  labels: { app: kubernetes-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: kubernetes-mcp }
+  template:
+    metadata:
+      labels: { app: kubernetes-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-servers"
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: kubernetes-mcp-reader
+      containers:
+        - name: kubernetes-mcp
+          image: harbor.ai.adports.ae/orbit/kubernetes-mcp:latest
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubernetes-mcp-reader
+  namespace: ai-portal
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubernetes-mcp-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "services", "nodes", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubernetes-mcp-reader
+subjects:
+  - kind: ServiceAccount
+    name: kubernetes-mcp-reader
+    namespace: ai-portal
+roleRef:
+  kind: ClusterRole
+  name: kubernetes-mcp-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: kubernetes-mcp }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+# PostgreSQL MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-mcp
+  namespace: ai-portal
+  labels: { app: postgres-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres-mcp }
+  template:
+    metadata:
+      labels: { app: postgres-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-servers"
+        vault.hashicorp.com/agent-inject-secret-pg: "secret/data/mcp-servers/env"
+        vault.hashicorp.com/agent-inject-template-pg: |
+          {{- with secret "secret/data/mcp-servers/env" -}}
+          export POSTGRES_MCP_DSN="{{ .Data.data.postgres_dsn }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: postgres-mcp
+          image: harbor.ai.adports.ae/orbit/postgres-mcp:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/pg && exec uvicorn main:app --host 0.0.0.0 --port 8000"]
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: postgres-mcp }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+# Jira MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jira-mcp
+  namespace: ai-portal
+  labels: { app: jira-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: jira-mcp }
+  template:
+    metadata:
+      labels: { app: jira-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-servers"
+        vault.hashicorp.com/agent-inject-secret-jira: "secret/data/mcp-servers/env"
+        vault.hashicorp.com/agent-inject-template-jira: |
+          {{- with secret "secret/data/mcp-servers/env" -}}
+          export JIRA_MCP_TOKEN="{{ .Data.data.jira_token }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: jira-mcp
+          image: harbor.ai.adports.ae/orbit/jira-mcp:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/jira && exec uvicorn main:app --host 0.0.0.0 --port 8000"]
+          env:
+            - name: JIRA_MCP_URL
+              value: "https://adports.atlassian.net"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jira-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: jira-mcp }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+# Vault MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-mcp
+  namespace: ai-portal
+  labels: { app: vault-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: vault-mcp }
+  template:
+    metadata:
+      labels: { app: vault-mcp }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: vault-mcp
+          image: harbor.ai.adports.ae/orbit/vault-mcp:latest
+          env:
+            - name: VAULT_MCP_VAULT_ADDR
+              value: "http://vault.vault.svc:8200"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: vault-mcp }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+# Harbor MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: harbor-mcp
+  namespace: ai-portal
+  labels: { app: harbor-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: harbor-mcp }
+  template:
+    metadata:
+      labels: { app: harbor-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-servers"
+        vault.hashicorp.com/agent-inject-secret-harbor: "secret/data/mcp-servers/env"
+        vault.hashicorp.com/agent-inject-template-harbor: |
+          {{- with secret "secret/data/mcp-servers/env" -}}
+          export HARBOR_MCP_PASSWORD="{{ .Data.data.harbor_password }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: harbor-mcp
+          image: harbor.ai.adports.ae/orbit/harbor-mcp:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/harbor && exec uvicorn main:app --host 0.0.0.0 --port 8000"]
+          env:
+            - name: HARBOR_MCP_URL
+              value: "https://harbor.ai.adports.ae"
+            - name: HARBOR_MCP_USERNAME
+              value: "orbit-robot"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: harbor-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: harbor-mcp }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+# Confluence MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: confluence-mcp
+  namespace: ai-portal
+  labels: { app: confluence-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: confluence-mcp }
+  template:
+    metadata:
+      labels: { app: confluence-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-servers"
+        vault.hashicorp.com/agent-inject-secret-conf: "secret/data/mcp-servers/env"
+        vault.hashicorp.com/agent-inject-template-conf: |
+          {{- with secret "secret/data/mcp-servers/env" -}}
+          export CONFLUENCE_MCP_TOKEN="{{ .Data.data.confluence_token }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: confluence-mcp
+          image: harbor.ai.adports.ae/orbit/confluence-mcp:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/conf && exec uvicorn main:app --host 0.0.0.0 --port 8000"]
+          env:
+            - name: CONFLUENCE_MCP_URL
+              value: "https://adports.atlassian.net/wiki"
+            - name: CONFLUENCE_MCP_USERNAME
+              value: "orbit@adports.ae"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: confluence-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: confluence-mcp }
+  ports: [{ port: 80, targetPort: 8000 }]

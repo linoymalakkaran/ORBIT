@@ -1,0 +1,144 @@
+## Vault policies and Kubernetes auth role bindings for all ORBIT services
+## Apply these with: vault policy write <name> <file>
+##
+## Vault auth method: kubernetes
+## vault auth enable kubernetes
+## vault write auth/kubernetes/config \
+##   kubernetes_host="https://kubernetes.default.svc"
+
+---
+# Bootstrap script for all Vault policies + K8s roles
+# Run once per cluster: scripts/vault-bootstrap.sh
+
+# ── Policies ─────────────────────────────────────────────────────────────────
+
+policies:
+  portal-api: |
+    path "secret/data/portal-api/*" { capabilities = ["read"] }
+    path "secret/metadata/portal-api/*" { capabilities = ["list", "read"] }
+
+  pipeline-ledger: |
+    path "secret/data/pipeline-ledger/*" { capabilities = ["read"] }
+
+  capability-fabric: |
+    path "secret/data/capability-fabric/*" { capabilities = ["read"] }
+
+  orchestrator: |
+    path "secret/data/orchestrator/*" { capabilities = ["read"] }
+
+  hook-engine: |
+    path "secret/data/hook-engine/*" { capabilities = ["read"] }
+
+  project-registry-agent: |
+    path "secret/data/project-registry-agent/*" { capabilities = ["read"] }
+
+  health-monitor-agent: |
+    path "secret/data/health-monitor-agent/*" { capabilities = ["read"] }
+
+  pr-review-agent: |
+    path "secret/data/pr-review-agent/*" { capabilities = ["read"] }
+
+  ba-agent: |
+    path "secret/data/ba-agent/*" { capabilities = ["read"] }
+
+  pm-agent: |
+    path "secret/data/pm-agent/*" { capabilities = ["read"] }
+
+  vulnerability-radar-agent: |
+    path "secret/data/vulnerability-radar-agent/*" { capabilities = ["read"] }
+
+  fleet-upgrade-agent: |
+    path "secret/data/fleet-upgrade-agent/*" { capabilities = ["read"] }
+
+  docs-agent: |
+    path "secret/data/docs-agent/*" { capabilities = ["read"] }
+
+  litellm: |
+    path "secret/data/litellm/*" { capabilities = ["read"] }
+
+  mcp-servers: |
+    path "secret/data/mcp-servers/*" { capabilities = ["read"] }
+
+# ── Kubernetes Auth Roles ────────────────────────────────────────────────────
+# vault write auth/kubernetes/role/<name> \
+#   bound_service_account_names=<sa> \
+#   bound_service_account_namespaces=<ns> \
+#   policies=<policy> \
+#   ttl=1h
+
+k8s_roles:
+  - name: portal-api
+    service_account: portal-api
+    namespace: ai-portal
+    policy: portal-api
+  - name: pipeline-ledger
+    service_account: pipeline-ledger
+    namespace: ai-portal
+    policy: pipeline-ledger
+  - name: capability-fabric
+    service_account: capability-fabric
+    namespace: ai-portal
+    policy: capability-fabric
+  - name: orchestrator
+    service_account: orchestrator
+    namespace: ai-portal
+    policy: orchestrator
+  - name: hook-engine
+    service_account: hook-engine
+    namespace: ai-portal
+    policy: hook-engine
+  - name: project-registry-agent
+    service_account: project-registry-agent
+    namespace: ai-portal
+    policy: project-registry-agent
+  - name: health-monitor-agent
+    service_account: health-monitor-agent
+    namespace: ai-portal
+    policy: health-monitor-agent
+  - name: pr-review-agent
+    service_account: pr-review-agent
+    namespace: ai-portal
+    policy: pr-review-agent
+  - name: ba-agent
+    service_account: ba-agent
+    namespace: ai-portal
+    policy: ba-agent
+  - name: pm-agent
+    service_account: pm-agent
+    namespace: ai-portal
+    policy: pm-agent
+  - name: vulnerability-radar-agent
+    service_account: vulnerability-radar-agent
+    namespace: ai-portal
+    policy: vulnerability-radar-agent
+  - name: fleet-upgrade-agent
+    service_account: fleet-upgrade-agent
+    namespace: ai-portal
+    policy: fleet-upgrade-agent
+  - name: docs-agent
+    service_account: docs-agent
+    namespace: ai-portal
+    policy: docs-agent
+  - name: litellm
+    service_account: litellm
+    namespace: litellm
+    policy: litellm
+  - name: mcp-servers
+    service_account: mcp-servers
+    namespace: ai-portal
+    policy: mcp-servers
+
+# ── Secret Paths (required to be seeded) ────────────────────────────────────
+# vault kv put secret/portal-api/env db_password=xxx redis_password=xxx kafka_password=xxx keycloak_client_secret=xxx
+# vault kv put secret/pipeline-ledger/env esdb_password=xxx db_password=xxx
+# vault kv put secret/orchestrator/litellm api_key=xxx
+# vault kv put secret/hook-engine/env webhook_secret=xxx orchestrator_token=xxx
+# vault kv put secret/pr-review-agent/env gitlab_token=xxx litellm_api_key=xxx
+# vault kv put secret/project-registry-agent/env gitlab_token=xxx portal_service_token=xxx
+# vault kv put secret/ba-agent/env litellm_api_key=xxx
+# vault kv put secret/pm-agent/env litellm_api_key=xxx
+# vault kv put secret/vulnerability-radar-agent/env litellm_api_key=xxx
+# vault kv put secret/fleet-upgrade-agent/env litellm_api_key=xxx
+# vault kv put secret/docs-agent/env litellm_api_key=xxx
+# vault kv put secret/litellm/env azure_openai_endpoint=xxx azure_openai_key=xxx master_key=xxx db_url=xxx
+# vault kv put secret/mcp-servers/env gitlab_token=xxx keycloak_client_secret=xxx jira_token=xxx

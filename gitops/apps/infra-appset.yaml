@@ -8,6 +8,13 @@ spec:
   generators:
     - list:
         elements:
+          - name: platform-k8s
+            namespace: ai-portal
+            repoURL: https://github.com/linoymalakkaran/ORBIT.git
+            path: infra/k8s
+            chart: ""
+            version: main
+            valuesPath: ""
           - name: litellm
             namespace: litellm
             repoURL: https://github.com/linoymalakkaran/ORBIT.git

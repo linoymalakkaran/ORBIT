@@ -75,3 +75,8 @@ Format as markdown."""
 @app.get("/health/live")
 async def liveness():
     return {"status": "ok"}
+
+
+@app.get("/health/ready")
+async def readiness():
+    return {"status": "ok"}

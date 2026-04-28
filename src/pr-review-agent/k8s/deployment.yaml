@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pr-review-agent
+  namespace: ai-portal
+  labels: { app: pr-review-agent }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: pr-review-agent }
+  template:
+    metadata:
+      labels: { app: pr-review-agent }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8000"
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "pr-review-agent"
+        vault.hashicorp.com/agent-inject-secret-env: "secret/data/pr-review-agent/env"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{- with secret "secret/data/pr-review-agent/env" -}}
+          export PRREVIEW_GITLAB_TOKEN="{{ .Data.data.gitlab_token }}"
+          export PRREVIEW_LITELLM_API_KEY="{{ .Data.data.litellm_api_key }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      serviceAccountName: pr-review-agent
+      containers:
+        - name: pr-review-agent
+          image: harbor.ai.adports.ae/orbit/pr-review-agent:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/env && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+          ports: [{ containerPort: 8000 }]
+          env:
+            - name: PRREVIEW_GITLAB_URL
+              value: "https://gitlab.adports.ae"
+            - name: PRREVIEW_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: PRREVIEW_DEFAULT_MODEL
+              value: "gpt-4o-mini"
+            - name: PRREVIEW_KEYCLOAK_ISSUER
+              value: "https://auth.ai.adports.ae/realms/ai-portal"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "200m", memory: "512Mi" }
+            limits:   { cpu: "1000m", memory: "1Gi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pr-review-agent
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pr-review-agent
+  namespace: ai-portal
+spec:
+  selector: { app: pr-review-agent }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pr-review-agent
+  namespace: ai-portal
+  annotations:
+    cert-manager.io/cluster-issuer: adports-internal-ca
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts: [pr-review.ai.adports.ae]
+      secretName: pr-review-tls
+  rules:
+    - host: pr-review.ai.adports.ae
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pr-review-agent
+                port: { number: 80 }

@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hook-engine
+  namespace: ai-portal
+  labels: { app: hook-engine }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: hook-engine }
+  template:
+    metadata:
+      labels: { app: hook-engine }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8000"
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "hook-engine"
+        vault.hashicorp.com/agent-inject-secret-env: "secret/data/hook-engine/env"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{- with secret "secret/data/hook-engine/env" -}}
+          export HOOK_WEBHOOK_SECRET="{{ .Data.data.webhook_secret }}"
+          export HOOK_ORCHESTRATOR_TOKEN="{{ .Data.data.orchestrator_token }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      serviceAccountName: hook-engine
+      containers:
+        - name: hook-engine
+          image: harbor.ai.adports.ae/orbit/hook-engine:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/env && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+          ports: [{ containerPort: 8000 }]
+          env:
+            - name: HOOK_KAFKA_BOOTSTRAP_SERVERS
+              value: "orbit-kafka-kafka-bootstrap.kafka.svc:9092"
+            - name: HOOK_KAFKA_TOPIC
+              value: "orbit.pipeline.events"
+            - name: HOOK_ORCHESTRATOR_URL
+              value: "http://orchestrator.ai-portal.svc:80"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hook-engine
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hook-engine
+  namespace: ai-portal
+spec:
+  selector: { app: hook-engine }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hook-engine
+  namespace: ai-portal
+  annotations:
+    cert-manager.io/cluster-issuer: adports-internal-ca
+    konghq.com/strip-path: "false"
+    # GitLab sends webhooks to this endpoint — no auth stripping needed
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts: [hooks.ai.adports.ae]
+      secretName: hook-engine-tls
+  rules:
+    - host: hooks.ai.adports.ae
+      http:
+        paths:
+          - path: /webhooks
+            pathType: Prefix
+            backend:
+              service:
+                name: hook-engine
+                port: { number: 80 }

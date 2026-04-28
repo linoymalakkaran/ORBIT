@@ -53,6 +53,9 @@ spec:
           - service: docs-agent
             namespace: ai-portal
             path: src/docs-agent/k8s
+          - service: platform-hpa-pdb
+            namespace: ai-portal
+            path: infra/k8s
   template:
     metadata:
       name: "orbit-{{service}}"
