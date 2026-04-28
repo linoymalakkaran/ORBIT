@@ -1,0 +1,15 @@
+name: security_scan
+display_name: "Security Scan"
+version: "1.0.0"
+category: security
+status: active
+description: "SAST/DAST analysis: identifies OWASP Top-10 issues, generates remediation advice."
+instructions_key: "instructions/security_scan/v1.md"
+parameters:
+  - name: scan_type
+    type: string
+    description: "'sast' | 'dast' | 'iac' | 'all'"
+    required: false
+    default: "all"
+tags: ["security", "sast", "owasp"]
+mcp_servers: ["vault-mcp", "kubernetes-mcp"]

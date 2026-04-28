@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capability-fabric
+  namespace: ai-portal
+  labels:
+    app: capability-fabric
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: capability-fabric }
+  template:
+    metadata:
+      labels: { app: capability-fabric }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "capability-fabric"
+        vault.hashicorp.com/agent-inject-secret-pg: "secret/data/capability-fabric/postgres"
+        vault.hashicorp.com/agent-inject-template-pg: |
+          {{- with secret "secret/data/capability-fabric/postgres" -}}
+          export FABRIC_PG_DSN="postgresql+asyncpg://{{ .Data.data.username }}:{{ .Data.data.password }}@postgres:5432/orbit_fabric"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-secret-minio: "secret/data/capability-fabric/minio"
+        vault.hashicorp.com/agent-inject-template-minio: |
+          {{- with secret "secret/data/capability-fabric/minio" -}}
+          export FABRIC_MINIO_ACCESS_KEY="{{ .Data.data.access_key }}"
+          export FABRIC_MINIO_SECRET_KEY="{{ .Data.data.secret_key }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      serviceAccountName: capability-fabric
+      containers:
+        - name: capability-fabric
+          image: harbor.ai.adports.ae/orbit/capability-fabric:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - "source /vault/secrets/pg && source /vault/secrets/minio && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+          ports:
+            - containerPort: 8000
+          env:
+            - name: FABRIC_MINIO_ENDPOINT
+              value: "minio.ai-portal-data.svc.cluster.local:9000"
+            - name: FABRIC_KEYCLOAK_ISSUER
+              value: "https://auth.ai.adports.ae/realms/ai-portal"
+            - name: FABRIC_OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 15
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8000 }
+            initialDelaySeconds: 5
+      imagePullSecrets:
+        - name: harbor-pull-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: capability-fabric
+  namespace: ai-portal
+spec:
+  selector: { app: capability-fabric }
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: capability-fabric
+  namespace: ai-portal

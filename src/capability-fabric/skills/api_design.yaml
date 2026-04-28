@@ -1,0 +1,15 @@
+name: api_design
+display_name: "API Design"
+version: "1.0.0"
+category: generation
+status: active
+description: "Designs RESTful or GraphQL APIs: generates OpenAPI specs from natural language."
+instructions_key: "instructions/api_design/v1.md"
+parameters:
+  - name: api_style
+    type: string
+    description: "'rest' | 'graphql' | 'grpc'"
+    required: false
+    default: "rest"
+tags: ["api", "design", "openapi"]
+mcp_servers: ["gitlab-mcp"]

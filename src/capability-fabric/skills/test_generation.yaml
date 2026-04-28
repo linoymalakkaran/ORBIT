@@ -1,0 +1,20 @@
+name: test_generation
+display_name: "Test Generation"
+version: "1.0.0"
+category: testing
+status: active
+description: "Generates unit, integration and e2e test cases for a given code artifact."
+instructions_key: "instructions/test_generation/v1.md"
+parameters:
+  - name: test_type
+    type: string
+    description: "Type: 'unit' | 'integration' | 'e2e'"
+    required: false
+    default: "unit"
+  - name: framework
+    type: string
+    description: "Test framework (e.g. pytest, xunit, jest)"
+    required: false
+    default: "auto"
+tags: ["testing", "quality"]
+mcp_servers: ["gitlab-mcp"]

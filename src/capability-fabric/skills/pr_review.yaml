@@ -1,0 +1,18 @@
+name: pr_review
+display_name: "Pull Request Review"
+version: "1.0.0"
+category: review
+status: active
+description: "Reviews GitLab MRs: diff analysis, risk scoring, actionable comments."
+instructions_key: "instructions/pr_review/v1.md"
+parameters:
+  - name: mr_iid
+    type: integer
+    description: "GitLab merge request IID"
+    required: true
+  - name: project_path
+    type: string
+    description: "GitLab project path (e.g. group/project)"
+    required: true
+tags: ["review", "gitlab", "mr"]
+mcp_servers: ["gitlab-mcp"]

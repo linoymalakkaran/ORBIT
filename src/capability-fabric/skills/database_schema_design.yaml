@@ -1,0 +1,15 @@
+name: database_schema_design
+display_name: "Database Schema Design"
+version: "1.0.0"
+category: generation
+status: active
+description: "Designs normalised relational schemas from entity descriptions; produces DDL + ERD."
+instructions_key: "instructions/database_schema_design/v1.md"
+parameters:
+  - name: db_dialect
+    type: string
+    description: "'postgresql' | 'mysql' | 'sqlite'"
+    required: false
+    default: "postgresql"
+tags: ["database", "schema", "ddl"]
+mcp_servers: ["postgres-mcp"]

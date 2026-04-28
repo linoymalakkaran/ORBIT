@@ -1,0 +1,15 @@
+name: documentation_generation
+display_name: "Documentation Generation"
+version: "1.0.0"
+category: documentation
+status: active
+description: "Generates README, ADR, runbook or API reference docs from code or requirements."
+instructions_key: "instructions/documentation_generation/v1.md"
+parameters:
+  - name: doc_type
+    type: string
+    description: "'readme' | 'adr' | 'runbook' | 'api_ref'"
+    required: false
+    default: "readme"
+tags: ["docs", "documentation"]
+mcp_servers: ["gitlab-mcp", "confluence-mcp"]

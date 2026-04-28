@@ -1,0 +1,15 @@
+name: ci_pipeline_generation
+display_name: "CI Pipeline Generation"
+version: "1.0.0"
+category: generation
+status: active
+description: "Generates GitLab CI .gitlab-ci.yml pipeline from project metadata and detected stack."
+instructions_key: "instructions/ci_pipeline_generation/v1.md"
+parameters:
+  - name: stack
+    type: string
+    description: "Tech stack hint (e.g. 'dotnet', 'python', 'angular', 'multi')"
+    required: false
+    default: "auto"
+tags: ["ci", "gitlab", "devops"]
+mcp_servers: ["gitlab-mcp"]

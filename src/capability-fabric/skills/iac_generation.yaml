@@ -1,0 +1,15 @@
+name: iac_generation
+display_name: "IaC Generation"
+version: "1.0.0"
+category: generation
+status: active
+description: "Generates Pulumi TypeScript or Helm chart stubs from high-level infrastructure intent."
+instructions_key: "instructions/iac_generation/v1.md"
+parameters:
+  - name: tool
+    type: string
+    description: "'pulumi' | 'helm' | 'terraform'"
+    required: false
+    default: "pulumi"
+tags: ["iac", "infrastructure", "pulumi"]
+mcp_servers: ["kubernetes-mcp", "vault-mcp"]

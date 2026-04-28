@@ -1,0 +1,19 @@
+name: pipeline_orchestration
+display_name: "Pipeline Orchestration"
+version: "1.0.0"
+category: orchestration
+status: active
+description: "Coordinates multi-agent AI development pipeline stages end-to-end."
+instructions_key: "instructions/pipeline_orchestration/v1.md"
+parameters:
+  - name: project_id
+    type: string
+    description: "ORBIT project UUID"
+    required: true
+  - name: target_stage
+    type: integer
+    description: "Target pipeline stage to advance to (1-12)"
+    required: false
+    default: "1"
+tags: ["orchestration", "pipeline"]
+mcp_servers: ["kubernetes-mcp", "gitlab-mcp", "jira-mcp"]

@@ -1,0 +1,15 @@
+name: requirements_analysis
+display_name: "Requirements Analysis"
+version: "1.0.0"
+category: analysis
+status: active
+description: "Parses business requirements and extracts user stories, acceptance criteria, edge cases."
+instructions_key: "instructions/requirements_analysis/v1.md"
+parameters:
+  - name: input_format
+    type: string
+    description: "Input format: 'text' | 'confluence' | 'jira'"
+    required: false
+    default: "text"
+tags: ["ba", "requirements", "analysis"]
+mcp_servers: ["jira-mcp", "confluence-mcp"]

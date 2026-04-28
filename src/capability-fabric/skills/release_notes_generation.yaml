@@ -1,0 +1,19 @@
+name: release_notes_generation
+display_name: "Release Notes Generation"
+version: "1.0.0"
+category: documentation
+status: active
+description: "Generates changelog and release notes from git history and Jira tickets."
+instructions_key: "instructions/release_notes_generation/v1.md"
+parameters:
+  - name: from_tag
+    type: string
+    description: "Starting git tag"
+    required: true
+  - name: to_tag
+    type: string
+    description: "Ending git tag or 'HEAD'"
+    required: false
+    default: "HEAD"
+tags: ["release", "changelog", "documentation"]
+mcp_servers: ["gitlab-mcp", "jira-mcp"]

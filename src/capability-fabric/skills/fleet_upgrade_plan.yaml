@@ -1,0 +1,14 @@
+name: fleet_upgrade_plan
+display_name: "Fleet Upgrade Plan"
+version: "1.0.0"
+category: analysis
+status: active
+description: "Analyses fleet of microservices, identifies upgrade paths, produces migration plan."
+instructions_key: "instructions/fleet_upgrade_plan/v1.md"
+parameters:
+  - name: namespace
+    type: string
+    description: "Kubernetes namespace to analyse"
+    required: true
+tags: ["fleet", "upgrade", "kubernetes"]
+mcp_servers: ["kubernetes-mcp", "harbor-mcp"]

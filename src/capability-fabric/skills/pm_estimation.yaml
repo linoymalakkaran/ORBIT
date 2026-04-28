@@ -1,0 +1,15 @@
+name: pm_estimation
+display_name: "PM Estimation"
+version: "1.0.0"
+category: analysis
+status: active
+description: "Estimates effort (story points / days) for user stories using three-point estimation."
+instructions_key: "instructions/pm_estimation/v1.md"
+parameters:
+  - name: estimation_method
+    type: string
+    description: "'three_point' | 'planning_poker' | 'fibonacci'"
+    required: false
+    default: "three_point"
+tags: ["pm", "estimation", "planning"]
+mcp_servers: ["jira-mcp"]

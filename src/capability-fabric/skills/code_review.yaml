@@ -1,0 +1,19 @@
+name: code_review
+display_name: "Code Review"
+version: "1.0.0"
+category: review
+status: active
+description: "Performs automated code review — style, correctness, security, performance."
+instructions_key: "instructions/code_review/v1.md"
+parameters:
+  - name: language
+    type: string
+    description: "Programming language (e.g. python, typescript, csharp)"
+    required: true
+  - name: focus
+    type: string
+    description: "Review focus: 'all' | 'security' | 'performance' | 'style'"
+    required: false
+    default: "all"
+tags: ["code", "quality", "security"]
+mcp_servers: ["gitlab-mcp", "sonar-mcp"]
