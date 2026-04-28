@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  namespace: ai-portal
+  labels: { app: orchestrator }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: orchestrator }
+  template:
+    metadata:
+      labels: { app: orchestrator }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "orchestrator"
+        vault.hashicorp.com/agent-inject-secret-llm: "secret/data/orchestrator/litellm"
+        vault.hashicorp.com/agent-inject-template-llm: |
+          {{- with secret "secret/data/orchestrator/litellm" -}}
+          export ORCH_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000 }
+      serviceAccountName: orchestrator
+      containers:
+        - name: orchestrator
+          image: harbor.ai.adports.ae/orbit/orchestrator:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/llm && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+          ports: [{ containerPort: 8000 }]
+          env:
+            - name: ORCH_LITELLM_API_BASE
+              value: "http://litellm-gateway.ai-portal.svc:4000"
+            - name: ORCH_TEMPORAL_HOST
+              value: "temporal.ai-portal.svc:7233"
+            - name: ORCH_TEMPORAL_NAMESPACE
+              value: "orbit"
+            - name: ORCH_MCP_REGISTRY_URL
+              value: "http://mcp-registry.ai-portal.svc:80"
+            - name: ORCH_FABRIC_API_URL
+              value: "http://capability-fabric.ai-portal.svc:80"
+            - name: ORCH_LEDGER_API_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: ORCH_KEYCLOAK_ISSUER
+              value: "https://auth.ai.adports.ae/realms/ai-portal"
+            - name: ORCH_OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits:   { cpu: "1000m", memory: "1Gi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 20
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8000 }
+            initialDelaySeconds: 10
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orchestrator
+  namespace: ai-portal
+spec:
+  selector: { app: orchestrator }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orchestrator
+  namespace: ai-portal
+  annotations:
+    konghq.com/strip-path: "true"
+    cert-manager.io/cluster-issuer: adports-internal-ca
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts: ["api.ai.adports.ae"]
+      secretName: api-tls
+  rules:
+    - host: api.ai.adports.ae
+      http:
+        paths:
+          - path: /pipelines
+            pathType: Prefix
+            backend:
+              service:
+                name: orchestrator
+                port: { number: 80 }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orchestrator
+  namespace: ai-portal
