@@ -1,0 +1,318 @@
+<mxfile host="app.diagrams.net" modified="2026-04-23T10:00:00.000Z" agent="AD Ports" version="24.0.0">
+  <diagram name="AI Portal - Lifecycle Flow" id="lifecycle">
+    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ============ TITLE ============ -->
+        <mxCell id="title" value="The Intent-to-Running-Application Lifecycle" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#0B5394;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1570" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="From BRD upload to a running, maintained, monitored application — with every decision recorded in the Pipeline Ledger" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=2;fontColor=#6B7280;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="1570" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ============ PHASE BANNER - GENERATE ============ -->
+        <mxCell id="phase1-banner" value="PHASE A — GENERATE (days, not weeks)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#1E40AF;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#1E3A8A;align=left;spacingLeft=20;letterSpacing=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="105" width="1570" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 1 - INTENT CAPTURE ============ -->
+        <mxCell id="s1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s1-num" value="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1D4ED8;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="55" y="165" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s1-title" value="INTENT CAPTURE" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="95" y="165" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s1-body" value="Architect uploads BRD, HLD, ICDs to the Portal.&#xa;&#xa;Picks architectural pattern.&#xa;Sets team, compliance scope, target cloud." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="55" y="200" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 2 - UNDERSTANDING ============ -->
+        <mxCell id="s2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="310" y="150" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s2-num" value="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1D4ED8;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="325" y="165" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s2-title" value="UNDERSTANDING" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="365" y="165" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s2-body" value="Orchestration Agent extracts structured intent:&#xa;• Business goals&#xa;• Bounded contexts&#xa;• Integrations (MPay, SINTECE, etc.)&#xa;• NFRs, compliance constraints" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="325" y="200" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 3 - STANDARDS CONSULTATION ============ -->
+        <mxCell id="s3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="580" y="150" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-num" value="3" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1D4ED8;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="595" y="165" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-title" value="STANDARDS CONSULTATION" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="635" y="165" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-body" value="Skill, Spec, Instruction agents return:&#xa;• CQRS scaffold skill&#xa;• Keycloak realm template&#xa;• Playwright pattern&#xa;• Secure pipeline template&#xa;• NESA / data-residency rules" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="595" y="200" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 4 - PROPOSAL GENERATION ============ -->
+        <mxCell id="s4-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="850" y="150" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s4-num" value="4" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1D4ED8;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="865" y="165" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s4-title" value="PROPOSAL GENERATION" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="905" y="165" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s4-body" value="Orchestrator synthesizes:&#xa;• draw.io architecture diagrams&#xa;• Component decomposition&#xa;• OpenAPI drafts&#xa;• Security &amp; QA plans&#xa;• Docusaurus spec site preview" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="865" y="200" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 5 - REVIEW CYCLE (highlighted - human gate) ============ -->
+        <mxCell id="s5-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="150" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s5-num" value="5" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D97706;strokeColor=#D97706;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="1135" y="165" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s5-title" value="REVIEW &amp; APPROVAL" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#92400E;" vertex="1" parent="1">
+          <mxGeometry x="1175" y="165" width="195" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s5-badge" value="HUMAN GATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;strokeColor=#DC2626;fontSize=9;fontStyle=1;fontColor=#FFFFFF;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1295" y="168" width="78" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s5-body" value="Tech lead reviews proposal.&#xa;Comments, requests changes, or approves.&#xa;&#xa;Every revision versioned.&#xa;Approval digitally signed &amp; recorded." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#92400E;" vertex="1" parent="1">
+          <mxGeometry x="1135" y="200" width="230" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 6 - DELEGATION ============ -->
+        <mxCell id="s6-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s6-num" value="6" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1D4ED8;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="55" y="325" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s6-title" value="DELEGATION" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="95" y="325" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s6-body" value="Orchestrator breaks approved plan into work packages for specialist agents.&#xa;&#xa;Each work package has explicit dependencies, budget, and exit criteria." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="55" y="360" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 7 - PARALLEL EXECUTION (wider) ============ -->
+        <mxCell id="s7-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="310" y="310" width="790" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-num" value="7" style="ellipse;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#059669;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="325" y="325" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-title" value="PARALLEL EXECUTION — Specialist Agents Work Concurrently" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#065F46;" vertex="1" parent="1">
+          <mxGeometry x="365" y="325" width="730" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s7-a1" value="Backend&#xa;.NET CQRS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="325" y="365" width="95" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a2" value="Frontend&#xa;Angular MFE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="425" y="365" width="95" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a3" value="Database&#xa;Postgres" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="525" y="365" width="95" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a4" value="Integration&#xa;RabbitMQ/Camunda" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="625" y="365" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a5" value="DevOps&#xa;GitLab pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="745" y="365" width="95" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a6" value="Infra&#xa;Pulumi/AKS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="845" y="365" width="95" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a7" value="QA Auto&#xa;Playwright/k6" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="945" y="365" width="95" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s7-a8" value="Integration Test&#xa;Postman/Newman" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="325" y="405" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a9" value="Security&#xa;SonarQube/Checkmarx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="445" y="405" width="135" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a10" value="Observability&#xa;OTEL/Grafana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="585" y="405" width="105" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a11" value="BA/PM Stories&#xa;Jira/Azure DevOps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="695" y="405" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a12" value="Ecosystem&#xa;@myadports-mpay etc." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="815" y="405" width="125" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s7-a13" value="Shared Services&#xa;Keycloak/MDM/Notify" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="945" y="405" width="145" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 8 - DEPLOYED-SYSTEM VERIFICATION ============ -->
+        <mxCell id="s8-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="310" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s8-num" value="8" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1D4ED8;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="1135" y="325" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s8-title" value="DEPLOYED-SYSTEM VERIFICATION" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="1175" y="325" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s8-body" value="Generated Postman collection runs against every environment (dev/QA/staging).&#xa;&#xa;Matrix report: which endpoints pass where.&#xa;Proves end-to-end working." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="1135" y="360" width="230" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============ STAGE 9 - HANDOVER & REGISTRATION ============ -->
+        <mxCell id="s9-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="1340" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="s9-num" value="9" style="ellipse;whiteSpace=wrap;html=1;fillColor=#16A34A;strokeColor=#16A34A;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="55" y="485" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s9-title" value="HANDOVER &amp; REGISTRATION — Team Receives a Working Foundation" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="95" y="485" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s9-body" value="Repository URLs  •  Running staging URL with Keycloak auth  •  Docusaurus spec site  •  Test reports across environments  •  Groomed Jira backlog  •  Postman collections  •  Runbook&#xa;&#xa;Project registered in Project Registry → automatically covered by PR Review, Vulnerability Radar, Framework Obsolescence, Service Health, and Fleet Upgrade campaigns." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="55" y="515" width="1310" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ============ PHASE B - MAINTAIN & OPERATE ============ -->
+        <mxCell id="phase2-banner" value="PHASE B — MAINTAIN &amp; OPERATE (for the entire lifecycle of the project)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#991B1B;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#7F1D1D;align=left;spacingLeft=20;letterSpacing=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="605" width="1570" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Maintenance capabilities in a row -->
+        <mxCell id="m1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="650" width="300" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="m1-title" value="🔁  PR REVIEW AGENT" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#991B1B;" vertex="1" parent="1">
+          <mxGeometry x="55" y="660" width="270" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m1-body" value="Every PR reviewed against project standards.&#xa;&#xa;Scored on 0–10 rubric. PRs below threshold auto-rejected with specific comments.&#xa;&#xa;Standards are enforced at commit time, not during review meetings." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="55" y="690" width="270" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="360" y="650" width="300" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="m2-title" value="🎫  TICKET IMPLEMENTATION" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#991B1B;" vertex="1" parent="1">
+          <mxGeometry x="375" y="660" width="270" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m2-body" value="Opt-in per project for eligible tickets.&#xa;&#xa;Agent reads Jira ticket → implements → tests → commits → opens PR → transitions to Done with commit SHA.&#xa;&#xa;Humans always merge." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="375" y="690" width="270" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="680" y="650" width="300" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="m3-title" value="🛡  VULNERABILITY RADAR" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#991B1B;" vertex="1" parent="1">
+          <mxGeometry x="695" y="660" width="270" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m3-body" value="Continuous scan of every dependency &amp; image across the portfolio.&#xa;&#xa;Critical CVEs → auto-PR with patch + notification.&#xa;&#xa;Zero-day response compressed from weeks to hours." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="695" y="690" width="270" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m4-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="650" width="300" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="m4-title" value="🚢  FLEET UPGRADE AGENT" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#92400E;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="660" width="270" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m4-body" value="One decision = campaign across whole portfolio.&#xa;&#xa;Example: .NET 6 → .NET 10 across 40 projects, wave-based, auto-verified by each project's test suite, one-click rollback.&#xa;&#xa;Per-team agent answers prompts from any IDE." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#78350F;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="690" width="270" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m5-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="650" width="290" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="m5-title" value="💓  HEALTH MONITOR" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#991B1B;" vertex="1" parent="1">
+          <mxGeometry x="1335" y="660" width="260" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m5-body" value="Live health checks on every service.&#xa;&#xa;Configurable probes + escalation. Notifies Teams/Slack/PagerDuty on failure. Opt-in auto-remediation.&#xa;&#xa;Root-cause correlation built in." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="1335" y="690" width="260" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- ============ PIPELINE LEDGER - RUNS UNDER EVERYTHING ============ -->
+        <mxCell id="ledger-banner" value="PIPELINE LEDGER — Every Stage, Artifact, Approval, Delegation, Deployment Recorded Immutably with Cryptographic Chaining" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#831843;strokeColor=#831843;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#FFFFFF;align=center;letterSpacing=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="835" width="1570" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ledger-icons" value="📜  Queryable by project • by stage • by approver • by Jira ticket • by artifact hash  •  Exportable as compliance evidence  •  Enables post-incident root-cause analysis  •  Preserves institutional memory forever" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#831843;" vertex="1" parent="1">
+          <mxGeometry x="40" y="885" width="1570" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ============ ARROWS - STAGE FLOW ============ -->
+        <mxCell id="arr-12" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;" edge="1" parent="1" source="s1-box" target="s2-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-23" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;" edge="1" parent="1" source="s2-box" target="s3-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-34" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;" edge="1" parent="1" source="s3-box" target="s4-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-45" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;" edge="1" parent="1" source="s4-box" target="s5-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Review revision loop arrow (stage 5 back to stage 4) -->
+        <mxCell id="arr-54-loop" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#D97706;dashed=1;curved=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="s5-box" target="s4-box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1250" y="110" />
+              <mxPoint x="975" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arr-loop-label" value="request changes → new version" style="text;html=1;strokeColor=none;fillColor=#FEF3C7;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=2;fontColor=#92400E;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="95" width="200" height="22" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow from stage 5 down to stage 6 (wrap to row 2) -->
+        <mxCell id="arr-56" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;curved=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="s5-box" target="s6-box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1250" y="460" />
+              <mxPoint x="165" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arr-56-label" value="APPROVED" style="text;html=1;strokeColor=none;fillColor=#DCFCE7;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="690" y="450" width="90" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arr-67" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;" edge="1" parent="1" source="s6-box" target="s7-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-78" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#1D4ED8;" edge="1" parent="1" source="s7-box" target="s8-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow from stage 8 down to stage 9 -->
+        <mxCell id="arr-89" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#16A34A;" edge="1" parent="1" source="s8-box" target="s9-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow from stage 9 down to Phase B -->
+        <mxCell id="arr-9m" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#DC2626;" edge="1" parent="1" source="s9-box" target="phase2-banner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============ BOTTOM KEY MESSAGE ============ -->
+        <mxCell id="bottom-msg" value="TIME TO VALUE:  What used to take weeks of bootstrap now takes hours.  •  What used to take months of portfolio-wide upgrades now takes one campaign.  •  What used to disappear into tribal memory now lives in a queryable ledger." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B5394;strokeColor=#0B5394;fontSize=13;fontStyle=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="925" width="1570" height="55" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

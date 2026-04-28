@@ -1,0 +1,330 @@
+<mxfile host="app.diagrams.net" modified="2026-04-23T10:00:00.000Z" agent="AD Ports" version="24.0.0">
+  <diagram name="AI Portal - Big Picture" id="big-picture">
+    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1050" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ============ TITLE ============ -->
+        <mxCell id="title" value="AI Portal — Enterprise AI Orchestration Platform" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#0B5394;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1570" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="One portal. All agents. Every standard. Forever maintained." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=2;fontColor=#6B7280;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="1570" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ============ LEFT COLUMN: INPUTS ============ -->
+        <mxCell id="inputs-header" value="INPUTS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#6B7280;letterSpacing=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="110" width="240" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="brd" value="BRD&#xa;Business Requirements" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#1A73E8;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="145" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="hld" value="HLD&#xa;High-Level Design" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#1A73E8;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="215" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="icd" value="ICD&#xa;Integration Contracts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#1A73E8;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="285" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="jira-in" value="Jira / Azure DevOps&#xa;Tickets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#1A73E8;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="355" width="240" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Developer IDEs box -->
+        <mxCell id="ide-header" value="DEVELOPERS IN THEIR EXISTING IDEs" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#6B7280;letterSpacing=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="240" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ide-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FD;strokeColor=#9333EA;fontSize=12;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="485" width="240" height="235" as="geometry" />
+        </mxCell>
+        <mxCell id="copilot" value="GitHub Copilot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9333EA;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="510" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="cursor" value="Cursor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9333EA;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="555" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="claudecode" value="Claude Code" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9333EA;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="term" value="Terminal / CLI Agents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9333EA;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="645" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ide-note" value="Zero migration. Zero learning curve." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#6B21A8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="690" width="240" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ============ CENTER: THE AI PORTAL ============ -->
+        <mxCell id="portal-outer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="340" y="110" width="770" height="810" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portal-title" value="THE AI PORTAL" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#92400E;letterSpacing=3;" vertex="1" parent="1">
+          <mxGeometry x="340" y="125" width="770" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="portal-sub" value="Central control plane — web UI + API + CLI" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=2;fontColor=#92400E;" vertex="1" parent="1">
+          <mxGeometry x="340" y="155" width="770" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Capability Fabric -->
+        <mxCell id="fabric-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="365" y="195" width="720" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="fabric-title" value="Capability Fabric — AD Ports Organizational Knowledge, Made Executable" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#92400E;" vertex="1" parent="1">
+          <mxGeometry x="365" y="205" width="720" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fab-mcp" value="MCP Servers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="235" width="105" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="fab-skills" value="Skills" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="495" y="235" width="105" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="fab-specs" value="Specs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="610" y="235" width="105" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="fab-instr" value="Instructions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="235" width="105" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="fab-cli" value="CLI / APIs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="840" y="235" width="105" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="fab-patterns" value="Patterns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="955" y="235" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="fab-note" value="CQRS skeleton • Keycloak realm template • Helm baseline • MPay integration contract • Playwright patterns • Secure pipeline templates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#6B7280;" vertex="1" parent="1">
+          <mxGeometry x="365" y="280" width="720" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Orchestration Agent -->
+        <mxCell id="orch-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#1D4ED8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="365" y="345" width="720" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="orch-title" value="Orchestration Agent" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="365" y="353" width="720" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="orch-sub" value="Reads intent → consults fabric → proposes architecture → delegates to specialists" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="365" y="378" width="720" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="orch-sub2" value="Deterministic workflow engine • Provider-agnostic LLM routing • Template-first (70–80% deterministic)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#3730A3;" vertex="1" parent="1">
+          <mxGeometry x="365" y="402" width="720" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Specialist Agents -->
+        <mxCell id="spec-header" value="Specialist Agents — Build, Maintain, Operate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#065F46;" vertex="1" parent="1">
+          <mxGeometry x="365" y="450" width="720" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ag-backend" value="Backend&#xa;(.NET CQRS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="480" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-frontend" value="Frontend&#xa;(Angular MFE)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="485" y="480" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-db" value="Database&#xa;(Postgres/Mongo)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="605" y="480" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-integ" value="Integration&#xa;(RabbitMQ/Camunda)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="480" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-devops" value="DevOps&#xa;(Pipelines)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="845" y="480" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-infra" value="Infrastructure&#xa;(Pulumi/AKS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="965" y="480" width="115" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ag-qa" value="QA Automation&#xa;(Playwright/k6)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="535" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-integtest" value="Integration Test&#xa;(Postman/Newman)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="485" y="535" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-sec" value="Security&#xa;(SonarQube/Checkmarx)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="605" y="535" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-obs" value="Observability&#xa;(OTEL/Grafana)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="535" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-bapm" value="BA / PM Stories&#xa;(Jira/ADO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="845" y="535" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-ticket" value="Ticket Impl.&#xa;(Auto-implement)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="965" y="535" width="115" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ag-migr" value="Migration&#xa;(Legacy systems)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="590" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-fwmigr" value="Framework Migration&#xa;(.NET/Angular)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="485" y="590" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-fleet" value="Fleet Upgrade&#xa;(Portfolio-wide)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="605" y="590" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-pr" value="PR Review&#xa;(Quality gate)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="590" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-vuln" value="Vulnerability Radar&#xa;(Continuous)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="845" y="590" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ag-health" value="Health Monitor&#xa;(Live services)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="965" y="590" width="115" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Ecosystem Agents -->
+        <mxCell id="eco-header" value="AD Ports Ecosystem Agents — Plug-and-Play Integration" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#7C2D12;" vertex="1" parent="1">
+          <mxGeometry x="365" y="650" width="720" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eco-mpay" value="@myadports-mpay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="680" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="eco-kc" value="@adports-keycloak" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="485" y="680" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="eco-crm" value="@myadports-crm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="605" y="680" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="eco-cms" value="@myadports-cms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="680" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="eco-erp" value="@myadports-erp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="845" y="680" width="115" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="eco-jul" value="JUL / PCS / SINTECE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7AA;strokeColor=#C2410C;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="965" y="680" width="115" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Governance Layer -->
+        <mxCell id="gov-header" value="Governance Layer — Everything Is Recorded" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#831843;" vertex="1" parent="1">
+          <mxGeometry x="365" y="730" width="720" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gov-ledger" value="Pipeline Ledger&#xa;(Immutable audit trail)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#BE185D;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="365" y="760" width="175" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gov-registry" value="Project Registry&#xa;(Fleet inventory)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#BE185D;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="545" y="760" width="175" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gov-hooks" value="Hook Engine&#xa;(Policy &amp; guardrails)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#BE185D;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="725" y="760" width="175" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gov-ctx" value="Shared Context&#xa;(Team memory)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#BE185D;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="905" y="760" width="175" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Shared Services -->
+        <mxCell id="svc-header" value="Shared Services — Consumed By Every New Project" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#3730A3;" vertex="1" parent="1">
+          <mxGeometry x="365" y="825" width="720" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="svc-kc" value="Keycloak&#xa;Identity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="855" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-mdm" value="MDM&#xa;Master Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="485" y="855" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-notif" value="Notification&#xa;Hub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="605" y="855" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-audit" value="Audit&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="725" y="855" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-file" value="File&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="845" y="855" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-qa" value="QA&#xa;Framework" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#4338CA;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="965" y="855" width="115" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- ============ RIGHT COLUMN: OUTPUTS ============ -->
+        <mxCell id="outputs-header" value="OUTPUTS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#6B7280;letterSpacing=2;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="110" width="440" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="out-repos" value="Generated Repositories&#xa;GitLab / Azure DevOps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="145" width="440" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="out-pipe" value="Secure CI/CD Pipelines&#xa;SonarQube + Checkmarx + Snyk + Trivy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="215" width="440" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="out-infra" value="Azure Infrastructure&#xa;AKS + Postgres + Kong + Vault" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="285" width="440" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="out-running" value="Running Staging Application&#xa;Authenticated, observable, tested" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="355" width="440" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="out-docs" value="Architecture Docs&#xa;Docusaurus site + draw.io diagrams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="425" width="440" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="out-tests" value="QA Automation Suites&#xa;Playwright + API + k6 + Postman collections" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="495" width="440" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="out-jira" value="Groomed Jira / ADO Backlog&#xa;Epics + stories + technical tasks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="565" width="440" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Ongoing Outcomes header -->
+        <mxCell id="ongoing-header" value="ONGOING — Lifecycle Automation" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#991B1B;letterSpacing=2;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="650" width="440" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="out-pr" value="Automated PR Reviews&#xa;Quality gate blocks sub-standard commits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="685" width="440" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="out-fleet" value="Fleet-Wide Maintenance&#xa;.NET 6→10, CVE patches — one campaign, all projects" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="745" width="440" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="out-health" value="Live Service Monitoring&#xa;Health checks, notifications, auto-remediation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="805" width="440" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="out-audit" value="Compliance-Grade Audit Trail&#xa;Every decision recorded, queryable, cryptographically chained" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="865" width="440" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ============ ARROWS ============ -->
+        <!-- Inputs to Portal -->
+        <mxCell id="arr-brd" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#1A73E8;" edge="1" parent="1" source="brd" target="portal-outer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-hld" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#1A73E8;" edge="1" parent="1" source="hld" target="portal-outer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-icd" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#1A73E8;" edge="1" parent="1" source="icd" target="portal-outer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-jira" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#1A73E8;" edge="1" parent="1" source="jira-in" target="portal-outer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- IDEs to Portal (bidirectional) -->
+        <mxCell id="arr-ide" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#9333EA;dashed=1;" edge="1" parent="1" source="ide-box" target="portal-outer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-ide-label" value="MCP + CLI" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=1;fontColor=#6B21A8;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="0" y="0" relative="1" as="geometry">
+            <mxPoint x="305" y="600" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Portal to Outputs -->
+        <mxCell id="arr-out1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#16A34A;" edge="1" parent="1" source="portal-outer" target="out-repos">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-out2" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#16A34A;" edge="1" parent="1" source="portal-outer" target="out-running">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-out3" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#DC2626;" edge="1" parent="1" source="portal-outer" target="out-fleet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============ KEY CALLOUT BOX AT BOTTOM ============ -->
+        <mxCell id="callout" value="THE KEY INSIGHT:  The AI Portal is not a new IDE, a new DSL, or a new runtime.  It is AD Ports' organizational knowledge — standards, patterns, ecosystem integrations — made programmatically accessible to every existing AI tool, for the entire lifecycle of every project." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E3A8A;strokeColor=#1E3A8A;fontSize=13;fontStyle=1;fontColor=#FFFFFF;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="950" width="1570" height="60" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

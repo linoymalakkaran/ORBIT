@@ -1,0 +1,230 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://portal.adports.ae/schemas/adports-helm-chart.values.schema.json",
+  "title": "AD Ports Helm Chart Values Schema",
+  "description": "Schema for AD Ports Helm chart values files. All generated services must produce values files conforming to this schema. Used by DevOps Agent and PR Review Agent to validate Helm chart completeness and security.",
+  "type": "object",
+  "required": ["image", "service", "resources", "autoscaling", "healthChecks", "observability", "security"],
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 2,
+      "description": "Number of pod replicas. Minimum 2 for high availability in staging/production."
+    },
+    "image": {
+      "type": "object",
+      "required": ["repository", "pullPolicy"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[a-z0-9./-]+$",
+          "description": "ACR image repository. Must be lowercase."
+        },
+        "tag": {
+          "type": "string",
+          "description": "Image tag. Use CI commit SHA, not 'latest' in staging/production.",
+          "examples": ["abc1234def5", "1.2.3"]
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent"],
+          "description": "Use 'Always' when tag is 'latest'; 'IfNotPresent' for pinned tags."
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "required": ["type", "port"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP"],
+          "description": "Services must be ClusterIP only. External access via Kong Ingress."
+        },
+        "port": {
+          "type": "integer",
+          "enum": [80],
+          "description": "Internal service port must be 80. Container port is 8080."
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "required": ["limits", "requests"],
+      "description": "Resource limits and requests are mandatory. No unbounded resource consumption.",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(m)?$",
+              "description": "CPU limit. Use millicores for < 1 CPU (e.g., '500m').",
+              "examples": ["1000m", "2"]
+            },
+            "memory": {
+              "type": "string",
+              "pattern": "^[0-9]+(Mi|Gi)$",
+              "examples": ["512Mi", "1Gi"]
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?(m)?$" },
+            "memory": { "type": "string", "pattern": "^[0-9]+(Mi|Gi)$" }
+          }
+        }
+      }
+    },
+    "autoscaling": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minReplicas": { "type": "integer", "minimum": 2 },
+        "maxReplicas": { "type": "integer", "maximum": 20 },
+        "targetCPUUtilizationPercentage": { "type": "integer", "minimum": 50, "maximum": 80 }
+      }
+    },
+    "healthChecks": {
+      "type": "object",
+      "required": ["liveness", "readiness"],
+      "description": "Both liveness and readiness probes are mandatory.",
+      "properties": {
+        "liveness": {
+          "type": "object",
+          "required": ["path", "port"],
+          "properties": {
+            "path": { "type": "string", "const": "/health/live" },
+            "port": { "type": "integer", "const": 8080 },
+            "initialDelaySeconds": { "type": "integer", "minimum": 10 },
+            "periodSeconds": { "type": "integer", "minimum": 10 }
+          }
+        },
+        "readiness": {
+          "type": "object",
+          "required": ["path", "port"],
+          "properties": {
+            "path": { "type": "string", "const": "/health/ready" },
+            "port": { "type": "integer", "const": 8080 }
+          }
+        }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "required": ["otel"],
+      "properties": {
+        "otel": {
+          "type": "object",
+          "required": ["enabled", "endpoint"],
+          "properties": {
+            "enabled": { "type": "boolean", "const": true },
+            "endpoint": {
+              "type": "string",
+              "description": "OpenTelemetry collector endpoint.",
+              "examples": ["http://otel-collector.monitoring:4317"]
+            },
+            "protocol": { "type": "string", "enum": ["grpc", "http/protobuf"] }
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "required": ["runAsNonRoot", "allowPrivilegeEscalation", "readOnlyRootFilesystem"],
+      "description": "Pod security context. All three fields are mandatory.",
+      "properties": {
+        "runAsNonRoot": { "type": "boolean", "const": true },
+        "runAsUser": { "type": "integer", "minimum": 1000 },
+        "allowPrivilegeEscalation": { "type": "boolean", "const": false },
+        "readOnlyRootFilesystem": { "type": "boolean" },
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "drop": {
+              "type": "array",
+              "items": { "type": "string" },
+              "contains": { "const": "ALL" },
+              "description": "Must drop ALL capabilities at minimum."
+            }
+          }
+        }
+      }
+    },
+    "vault": {
+      "type": "object",
+      "description": "Vault Agent Injector annotations for secret injection.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "role": { "type": "string" },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "mountPath"],
+            "properties": {
+              "path": { "type": "string" },
+              "mountPath": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "description": "PostgreSQL connection settings (secret values from Vault, not hardcoded).",
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": "integer", "default": 5432 },
+        "database": { "type": "string" },
+        "secretRef": { "type": "string", "description": "K8s secret name containing credentials (populated by Vault)." }
+      }
+    },
+    "keycloak": {
+      "type": "object",
+      "description": "Keycloak auth configuration.",
+      "required": ["authority"],
+      "properties": {
+        "authority": { "type": "string", "format": "uri" },
+        "clientId": { "type": "string" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string", "const": "kong" },
+        "annotations": { "type": "object" },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["host", "paths"],
+            "properties": {
+              "host": { "type": "string" },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["path", "pathType"],
+                  "properties": {
+                    "path": { "type": "string" },
+                    "pathType": { "type": "string", "enum": ["Prefix", "Exact"] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tls": { "type": "array" }
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://portal.adports.ae/schemas/adports-mcp-server.schema.json",
+  "title": "AD Ports MCP Server Definition Schema",
+  "description": "Schema for AD Ports MCP server tool catalog definitions. Used by the MCP Registry to validate server registrations and by the Standards MCP Server to expose tool documentation.",
+  "type": "object",
+  "required": ["serverId", "displayName", "version", "owner", "backingService", "authentication", "tools"],
+  "properties": {
+    "serverId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}[a-z0-9]-mcp$",
+      "description": "Unique MCP server ID. Must end in '-mcp'. E.g. 'keycloak-mcp', 'gitlab-mcp'.",
+      "examples": ["keycloak-mcp", "gitlab-mcp", "aks-mcp", "postgres-mcp"]
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable name shown in Portal and IDE configuration",
+      "examples": ["AD Ports Keycloak MCP", "AD Ports GitLab MCP"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Owning squad. One of the defined Platform squads.",
+      "enum": ["infra-squad", "core-squad", "fabric-squad", "orchestrator-squad", "delivery-agents-squad", "governance-squad", "qa-squad", "intelligence-squad", "ecosystem-squad"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "beta", "deprecated", "disabled"],
+      "default": "active"
+    },
+    "backingService": {
+      "type": "object",
+      "required": ["name", "type", "endpoint"],
+      "properties": {
+        "name":     { "type": "string", "description": "e.g. 'Keycloak 25'" },
+        "type":     { "type": "string", "enum": ["keycloak", "gitlab", "azure_devops", "aks", "postgresql", "jira", "azure_boards", "sonarqube", "checkmarx", "vault", "newman", "drawio", "langsmith", "custom"] },
+        "endpoint": { "type": "string", "format": "uri", "description": "Internal (cluster-internal) base URL" }
+      }
+    },
+    "authentication": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["keycloak_jwt", "service_account", "vault_token", "none"],
+          "description": "How callers authenticate to this MCP server"
+        },
+        "requiredScopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Keycloak scopes required to call any tool on this server"
+        },
+        "vaultCredentialPath": {
+          "type": "string",
+          "description": "Vault path where the server's own credentials are stored (for backing service auth)"
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Tool catalog. Each tool is one callable capability of this MCP server.",
+      "items": {
+        "type": "object",
+        "required": ["toolId", "displayName", "description", "inputSchema", "outputSchema"],
+        "properties": {
+          "toolId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,63}$",
+            "description": "snake_case tool identifier. Unique within this server."
+          },
+          "displayName": { "type": "string" },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "description": "Clear description of what the tool does and when to use it"
+          },
+          "inputSchema": {
+            "type": "object",
+            "description": "JSON Schema for the tool's input parameters"
+          },
+          "outputSchema": {
+            "type": "object",
+            "description": "JSON Schema for the tool's return value"
+          },
+          "requiredPermission": {
+            "type": "string",
+            "description": "OpenFGA / Keycloak role required to call this specific tool. E.g. 'infra:write'",
+            "examples": ["infra:read", "infra:write", "security:admin", "ledger:export"]
+          },
+          "isMutating": {
+            "type": "boolean",
+            "description": "True if this tool changes state (creates, updates, deletes). Hook Engine pre-checks apply.",
+            "default": false
+          },
+          "recordsLedgerEvent": {
+            "type": "boolean",
+            "description": "True if this tool must record a Pipeline Ledger event on success",
+            "default": false
+          },
+          "requiresHookEngineApproval": {
+            "type": "boolean",
+            "description": "True if this tool calls the Hook Engine before executing. Mandatory for isMutating tools.",
+            "default": false
+          },
+          "rateLimits": {
+            "type": "object",
+            "properties": {
+              "callsPerMinute": { "type": "integer", "minimum": 1 },
+              "callsPerDay":    { "type": "integer", "minimum": 1 }
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["title", "input", "output"],
+              "properties": {
+                "title":  { "type": "string" },
+                "input":  { "type": "object" },
+                "output": { "type": "object" }
+              }
+            },
+            "description": "At least one example per tool is required for Capability Fabric documentation"
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Searchable tags for tool discovery. E.g. ['auth', 'user-management']"
+          }
+        }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "required": ["livenessPath", "readinessPath"],
+      "properties": {
+        "livenessPath":  { "type": "string", "const": "/health/live" },
+        "readinessPath": { "type": "string", "const": "/health/ready" }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "description": "AKS deployment information",
+      "properties": {
+        "namespace": { "type": "string" },
+        "helmChart":  { "type": "string" },
+        "serviceAccount": { "type": "string" }
+      }
+    },
+    "documentation": {
+      "type": "object",
+      "properties": {
+        "guideUrl":     { "type": "string", "format": "uri" },
+        "examplesUrl":  { "type": "string", "format": "uri" },
+        "changelogUrl": { "type": "string", "format": "uri" }
+      }
+    },
+    "ideConfiguration": {
+      "type": "object",
+      "description": "One-click IDE configuration snippets",
+      "properties": {
+        "copilot": {
+          "type": "string",
+          "description": "VS Code settings.json snippet for GitHub Copilot MCP configuration"
+        },
+        "cursor": {
+          "type": "string",
+          "description": "cursor.json snippet for Cursor IDE MCP configuration"
+        },
+        "claude": {
+          "type": "string",
+          "description": "claude_desktop_config.json snippet for Claude Code MCP configuration"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

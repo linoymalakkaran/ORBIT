@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://portal.adports.ae/schemas/adports-argocd-app.schema.json",
+  "title": "AD Ports ArgoCD Application Schema",
+  "description": "Validates ArgoCD Application manifests for AD Ports services. Enforces project scoping, sync policy, source structure, and destination namespace conventions. Used by DevOps Agent and PR Review Agent to validate generated ArgoCD manifests.",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "argoproj.io/v1alpha1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "Application"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "namespace", "labels"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^ai-portal-[a-z][a-z0-9-]{1,60}[a-z0-9]$",
+          "description": "Application name must start with 'ai-portal-'. E.g. 'ai-portal-dgd-declaration-service'"
+        },
+        "namespace": {
+          "type": "string",
+          "const": "argocd",
+          "description": "ArgoCD Application resources always live in the 'argocd' namespace"
+        },
+        "labels": {
+          "type": "object",
+          "required": ["app.kubernetes.io/part-of", "adports.ae/domain", "adports.ae/environment"],
+          "properties": {
+            "app.kubernetes.io/part-of": {
+              "type": "string",
+              "const": "ai-portal"
+            },
+            "adports.ae/domain": {
+              "type": "string",
+              "enum": ["dgd", "jul", "pcs", "mpay", "crm", "erp", "portal", "platform", "new"]
+            },
+            "adports.ae/environment": {
+              "type": "string",
+              "enum": ["dev", "staging", "prod"]
+            },
+            "adports.ae/phase": {
+              "type": "string",
+              "description": "Implementation phase that created this application (e.g. 'phase-01')"
+            }
+          },
+          "additionalProperties": true
+        },
+        "finalizers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Must include 'resources-finalizer.argocd.argoproj.io' for proper cleanup"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": ["project", "source", "destination", "syncPolicy"],
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "ArgoCD project. Must be 'ai-portal' for all platform apps.",
+          "pattern": "^ai-portal(-[a-z0-9-]+)?$"
+        },
+        "source": {
+          "type": "object",
+          "required": ["repoURL", "targetRevision", "path"],
+          "properties": {
+            "repoURL": {
+              "type": "string",
+              "description": "Must be the AD Ports GitLab or Azure DevOps repository URL",
+              "pattern": "^https://(gitlab\\.adports\\.ae|dev\\.azure\\.com/adports)/"
+            },
+            "targetRevision": {
+              "type": "string",
+              "description": "Git branch, tag, or commit SHA. Use 'HEAD' only for dev environment.",
+              "examples": ["HEAD", "main", "v1.2.3", "release/2026-Q2"]
+            },
+            "path": {
+              "type": "string",
+              "description": "Path within repo to Helm chart or kustomize root. No leading slash.",
+              "pattern": "^[^/]"
+            },
+            "helm": {
+              "type": "object",
+              "description": "Helm-specific configuration. Use for all AD Ports services (Helm-first).",
+              "properties": {
+                "valueFiles": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Per-environment values files. Reference like 'values-dev.yaml'."
+                },
+                "values": {
+                  "type": "string",
+                  "description": "Inline values override. WARNING: No secrets allowed here — use Vault."
+                },
+                "version": {
+                  "type": "string",
+                  "description": "Helm version. Use 'v3'."
+                }
+              }
+            }
+          }
+        },
+        "destination": {
+          "type": "object",
+          "required": ["server", "namespace"],
+          "properties": {
+            "server": {
+              "type": "string",
+              "description": "Target cluster API server URL. Use 'https://kubernetes.default.svc' for in-cluster.",
+              "examples": ["https://kubernetes.default.svc"]
+            },
+            "namespace": {
+              "type": "string",
+              "pattern": "^ai-portal-[a-z][a-z0-9-]{1,50}$",
+              "description": "Target namespace. Must follow 'ai-portal-{service}' naming.",
+              "examples": ["ai-portal-dgd", "ai-portal-mpay", "ai-portal-core", "ai-portal-platform"]
+            }
+          }
+        },
+        "syncPolicy": {
+          "type": "object",
+          "required": ["automated", "syncOptions"],
+          "description": "Automated sync is mandatory — manual sync defeats GitOps purpose.",
+          "properties": {
+            "automated": {
+              "type": "object",
+              "required": ["prune", "selfHeal"],
+              "properties": {
+                "prune": {
+                  "type": "boolean",
+                  "const": true,
+                  "description": "Prune resources removed from Git"
+                },
+                "selfHeal": {
+                  "type": "boolean",
+                  "const": true,
+                  "description": "Auto-correct drift from desired state"
+                },
+                "allowEmpty": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Allow syncing to empty state (dangerous — should be false)"
+                }
+              }
+            },
+            "syncOptions": {
+              "type": "array",
+              "items": { "type": "string" },
+              "contains": {
+                "const": "CreateNamespace=true"
+              },
+              "description": "Must include 'CreateNamespace=true'. Optionally include 'ServerSideApply=true'."
+            },
+            "retry": {
+              "type": "object",
+              "properties": {
+                "limit": { "type": "integer", "minimum": 3, "maximum": 10 },
+                "backoff": {
+                  "type": "object",
+                  "properties": {
+                    "duration": { "type": "string", "examples": ["5s"] },
+                    "maxDuration": { "type": "string", "examples": ["3m"] },
+                    "factor": { "type": "integer", "enum": [2] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ignoreDifferences": {
+          "type": "array",
+          "description": "Fields to ignore for drift detection. Use sparingly — document reason for each entry.",
+          "items": {
+            "type": "object",
+            "required": ["group", "kind"],
+            "properties": {
+              "group":        { "type": "string" },
+              "kind":         { "type": "string" },
+              "jsonPointers": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

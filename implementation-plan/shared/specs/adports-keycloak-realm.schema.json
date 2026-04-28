@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://portal.adports.ae/schemas/adports-keycloak-realm.schema.json",
+  "title": "AD Ports Keycloak Realm Configuration",
+  "description": "Schema for AD Ports Keycloak realm JSON export. Used by Keycloak MCP server to validate realm configurations before applying them.",
+  "type": "object",
+  "required": ["realm", "enabled", "sslRequired", "registrationAllowed", "roles", "clients"],
+  "properties": {
+    "realm": {
+      "type": "string",
+      "description": "Realm name. Must match kebab-case AD Ports domain name.",
+      "pattern": "^[a-z][a-z0-9-]{1,62}[a-z0-9]$",
+      "examples": ["portal", "dgd", "jul", "pcs"]
+    },
+    "enabled": {
+      "type": "boolean",
+      "const": true
+    },
+    "sslRequired": {
+      "type": "string",
+      "enum": ["all", "external"],
+      "description": "Must be 'all' for production realms."
+    },
+    "registrationAllowed": {
+      "type": "boolean",
+      "const": false,
+      "description": "Self-registration must be disabled. Users provisioned via SCIM from AD."
+    },
+    "passwordPolicy": {
+      "type": "string",
+      "description": "Keycloak password policy string.",
+      "examples": ["length(12) and notUsername and specialChars(1) and upperCase(1) and lowerCase(1) and digits(1)"]
+    },
+    "bruteForceProtected": {
+      "type": "boolean",
+      "const": true
+    },
+    "permanentLockout": {
+      "type": "boolean",
+      "const": false,
+      "description": "Use temporary lockout (15 minutes), not permanent."
+    },
+    "maxFailureWaitSeconds": {
+      "type": "integer",
+      "minimum": 900,
+      "description": "15 minutes minimum lockout duration."
+    },
+    "roles": {
+      "type": "object",
+      "required": ["realm"],
+      "properties": {
+        "realm": {
+          "type": "array",
+          "description": "Required realm roles. Domain-specific roles may be added.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          },
+          "contains": {
+            "properties": { "name": { "const": "platform_admin" } }
+          }
+        }
+      }
+    },
+    "clients": {
+      "type": "array",
+      "description": "OAuth2/OIDC clients. Every service must have its own client.",
+      "items": {
+        "type": "object",
+        "required": ["clientId", "enabled", "publicClient", "redirectUris", "webOrigins"],
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,62}[a-z0-9]$"
+          },
+          "enabled": { "type": "boolean", "const": true },
+          "publicClient": { "type": "boolean" },
+          "standardFlowEnabled": { "type": "boolean" },
+          "implicitFlowEnabled": { "type": "boolean", "const": false },
+          "directAccessGrantsEnabled": {
+            "type": "boolean",
+            "description": "Should be false in production. True only for test automation."
+          },
+          "serviceAccountsEnabled": {
+            "type": "boolean",
+            "description": "True for machine-to-machine service clients."
+          },
+          "redirectUris": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Redirect URIs. Must use https:// in production.",
+            "minItems": 1
+          },
+          "webOrigins": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "CORS origins. Must match production domain."
+          }
+        }
+      }
+    },
+    "smtpServer": {
+      "type": "object",
+      "description": "SMTP configuration for email verification and notifications.",
+      "required": ["host", "port", "from"],
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": "string" },
+        "from": { "type": "string", "format": "email" },
+        "ssl": { "type": "string", "enum": ["true", "false"] },
+        "starttls": { "type": "string", "enum": ["true", "false"] }
+      }
+    },
+    "otpPolicyType": {
+      "type": "string",
+      "enum": ["totp"],
+      "description": "Time-based OTP required for MFA."
+    },
+    "otpPolicyPeriod": {
+      "type": "integer",
+      "enum": [30],
+      "description": "30-second OTP validity window."
+    },
+    "accessTokenLifespan": {
+      "type": "integer",
+      "maximum": 300,
+      "description": "Access token lifespan in seconds. Maximum 5 minutes for security."
+    },
+    "ssoSessionMaxLifespan": {
+      "type": "integer",
+      "maximum": 28800,
+      "description": "Maximum 8 hours SSO session."
+    }
+  },
+  "additionalProperties": true
+}
