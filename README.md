@@ -82,6 +82,8 @@ ORBIT/
 - [CHANGELOG](CHANGELOG.md)
 - [CONTRIBUTING](CONTRIBUTING.md)
 - [Whitepaper](docs/whitepaper/AI-Portal-Platform-Whitepaper-Draft-v3.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Operational Runbook](docs/RUNBOOK.md)
 
 ---
 
