@@ -1,0 +1,60 @@
+## OpenTelemetry Collector deployment
+## Chart: open-telemetry/opentelemetry-collector
+
+image:
+  repository: harbor.ai.adports.ae/orbit/otel-collector
+  tag: "0.103.0"
+
+mode: deployment
+
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    batch:
+      timeout: 5s
+      send_batch_size: 512
+    memory_limiter:
+      check_interval: 1s
+      limit_mib: 400
+
+  exporters:
+    otlp/tempo:
+      endpoint: "tempo.monitoring.svc:4317"
+      tls:
+        insecure: true
+    prometheusremotewrite:
+      endpoint: "http://prometheus-operated.monitoring.svc:9090/api/v1/write"
+    loki:
+      endpoint: "http://loki.monitoring.svc:3100/loki/api/v1/push"
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [otlp/tempo]
+      metrics:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [prometheusremotewrite]
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [loki]

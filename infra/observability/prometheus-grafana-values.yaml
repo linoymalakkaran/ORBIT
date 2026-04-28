@@ -1,0 +1,127 @@
+## Prometheus + Grafana Helm values (kube-prometheus-stack)
+## Chart: prometheus-community/kube-prometheus-stack
+
+global:
+  imageRegistry: harbor.ai.adports.ae
+
+prometheus:
+  prometheusSpec:
+    image:
+      registry: harbor.ai.adports.ae
+      repository: orbit/prometheus
+      tag: v2.52.0
+    retention: 30d
+    retentionSize: 50GiB
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: vsphere-csi
+          resources:
+            requests:
+              storage: 50Gi
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    additionalScrapeConfigs:
+      - job_name: orbit-services
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - ai-portal
+                - ai-portal-data
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+
+grafana:
+  image:
+    registry: harbor.ai.adports.ae
+    repository: orbit/grafana
+    tag: "11.0.0"
+  adminPassword:
+    valueFrom:
+      secretKeyRef:
+        name: grafana-admin-secret
+        key: admin-password
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: vsphere-csi
+  ingress:
+    enabled: true
+    ingressClassName: kong
+    annotations:
+      cert-manager.io/cluster-issuer: adports-internal-ca
+    hosts:
+      - grafana.ai.adports.ae
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.ai.adports.ae
+  grafana.ini:
+    server:
+      domain: grafana.ai.adports.ae
+    auth.generic_oauth:
+      enabled: true
+      name: "Keycloak"
+      allow_sign_up: true
+      client_id: grafana
+      client_secret: "${GRAFANA_OIDC_SECRET}"
+      scopes: "openid profile email roles"
+      auth_url: "https://auth.ai.adports.ae/realms/ai-portal/protocol/openid-connect/auth"
+      token_url: "https://auth.ai.adports.ae/realms/ai-portal/protocol/openid-connect/token"
+      api_url: "https://auth.ai.adports.ae/realms/ai-portal/protocol/openid-connect/userinfo"
+      role_attribute_path: "contains(realm_access.roles[*], 'admin') && 'Admin' || 'Viewer'"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: orbit-dashboards
+          folder: ORBIT
+          type: file
+          disableDeletion: false
+          options:
+            path: /var/lib/grafana/dashboards/orbit
+
+alertmanager:
+  alertmanagerSpec:
+    image:
+      registry: harbor.ai.adports.ae
+      repository: orbit/alertmanager
+      tag: v0.27.0
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+kube-state-metrics:
+  image:
+    registry: harbor.ai.adports.ae
+    repository: orbit/kube-state-metrics
+    tag: v2.12.0
+
+prometheus-node-exporter:
+  image:
+    registry: harbor.ai.adports.ae
+    repository: orbit/node-exporter
+    tag: v1.8.0
