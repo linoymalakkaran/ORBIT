@@ -1,0 +1,160 @@
+# MCP Registry K8s manifest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-registry
+  namespace: ai-portal
+  labels: { app: mcp-registry }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mcp-registry }
+  template:
+    metadata:
+      labels: { app: mcp-registry }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      containers:
+        - name: mcp-registry
+          image: harbor.ai.adports.ae/orbit/mcp-registry:latest
+          imagePullPolicy: Always
+          env:
+            - name: MCP_KEYCLOAK_URL
+              value: "http://keycloak-mcp.ai-portal.svc:8000"
+            - name: MCP_GITLAB_URL
+              value: "http://gitlab-mcp.ai-portal.svc:8000"
+            - name: MCP_K8S_URL
+              value: "http://kubernetes-mcp.ai-portal.svc:8000"
+            - name: MCP_POSTGRES_URL
+              value: "http://postgres-mcp.ai-portal.svc:8000"
+            - name: MCP_JIRA_URL
+              value: "http://jira-mcp.ai-portal.svc:8000"
+            - name: MCP_VAULT_URL
+              value: "http://vault-mcp.ai-portal.svc:8000"
+            - name: MCP_HARBOR_URL
+              value: "http://harbor-mcp.ai-portal.svc:8000"
+            - name: MCP_CONFLUENCE_URL
+              value: "http://confluence-mcp.ai-portal.svc:8000"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-registry
+  namespace: ai-portal
+spec:
+  selector: { app: mcp-registry }
+  ports: [{ port: 80, targetPort: 8000 }]
+---
+# Keycloak MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-mcp
+  namespace: ai-portal
+  labels: { app: keycloak-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: keycloak-mcp }
+  template:
+    metadata:
+      labels: { app: keycloak-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-keycloak"
+        vault.hashicorp.com/agent-inject-secret-kc: "secret/data/mcp/keycloak"
+        vault.hashicorp.com/agent-inject-template-kc: |
+          {{- with secret "secret/data/mcp/keycloak" -}}
+          export KEYCLOAK_ADMIN_SECRET="{{ .Data.data.admin_secret }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: keycloak-mcp
+          image: harbor.ai.adports.ae/orbit/keycloak-mcp:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/kc && exec uvicorn main:app --host 0.0.0.0 --port 8000"]
+          env:
+            - name: KEYCLOAK_URL
+              value: "https://auth.ai.adports.ae"
+            - name: KEYCLOAK_REALM
+              value: "ai-portal"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: keycloak-mcp }
+  ports: [{ port: 8000, targetPort: 8000 }]
+---
+# GitLab MCP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-mcp
+  namespace: ai-portal
+  labels: { app: gitlab-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: gitlab-mcp }
+  template:
+    metadata:
+      labels: { app: gitlab-mcp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "mcp-gitlab"
+        vault.hashicorp.com/agent-inject-secret-gl: "secret/data/mcp/gitlab"
+        vault.hashicorp.com/agent-inject-template-gl: |
+          {{- with secret "secret/data/mcp/gitlab" -}}
+          export GITLAB_TOKEN="{{ .Data.data.token }}"
+          {{- end }}
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      serviceAccountName: mcp-servers
+      containers:
+        - name: gitlab-mcp
+          image: harbor.ai.adports.ae/orbit/gitlab-mcp:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/gl && exec uvicorn main:app --host 0.0.0.0 --port 8000"]
+          env:
+            - name: GITLAB_URL
+              value: "https://gitlab.adports.ae"
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "128Mi" }
+          securityContext: { allowPrivilegeEscalation: false }
+      imagePullSecrets: [{ name: harbor-pull-secret }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab-mcp
+  namespace: ai-portal
+spec:
+  selector: { app: gitlab-mcp }
+  ports: [{ port: 8000, targetPort: 8000 }]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-servers
+  namespace: ai-portal
