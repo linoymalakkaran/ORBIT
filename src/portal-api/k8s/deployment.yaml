@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-api
+  namespace: ai-portal-core
+  labels:
+    app: portal-api
+    version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: portal-api }
+  template:
+    metadata:
+      labels:
+        app: portal-api
+        version: "1.0.0"
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "orbit-app"
+        vault.hashicorp.com/agent-inject-secret-db: "secret/data/orbit/postgres/app"
+        vault.hashicorp.com/agent-inject-template-db: |
+          {{- with secret "secret/data/orbit/postgres/app" -}}
+          ConnectionStrings__Portal=Host=orbit-postgres-dev-rw.ai-portal-data.svc.cluster.local;Port=5432;Database=ai_portal_core;Username={{ .Data.data.username }};Password={{ .Data.data.password }}
+          {{- end }}
+        vault.hashicorp.com/agent-inject-secret-redis: "secret/data/orbit/redis/password"
+        vault.hashicorp.com/agent-inject-template-redis: |
+          {{- with secret "secret/data/orbit/redis/password" -}}
+          ConnectionStrings__Redis=orbit-redis-redis-cluster.ai-portal-data.svc.cluster.local:6379,password={{ .Data.data.password }}
+          {{- end }}
+    spec:
+      serviceAccountName: orbit-app
+      containers:
+        - name: portal-api
+          image: harbor.ai.adports.ae/orbit/portal-api:1.0.0
+          ports: [{ containerPort: 8080 }]
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: Keycloak__Authority
+              value: https://auth.ai.adports.ae/realms/ai-portal
+          envFrom:
+            - secretRef: { name: portal-api-env }
+          resources:
+            requests: { cpu: 200m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portal-api
+  namespace: ai-portal-core
+spec:
+  selector: { app: portal-api }
+  ports: [{ port: 80, targetPort: 8080 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: portal-api-ingress
+  namespace: ai-portal-core
+  annotations:
+    kubernetes.io/ingress.class: kong
+    cert-manager.io/cluster-issuer: adports-internal-ca
+spec:
+  tls:
+    - hosts: [api.ai.adports.ae]
+      secretName: portal-api-tls
+  rules:
+    - host: api.ai.adports.ae
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service: { name: portal-api, port: { number: 80 } }
