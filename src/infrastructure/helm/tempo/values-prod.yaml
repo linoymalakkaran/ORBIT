@@ -1,0 +1,21 @@
+# Tempo — prod
+image:
+  repository: harbor.ai.adports.ae/grafana/tempo
+  tag: "2.5.0"
+tempo:
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: 500m, memory: 2Gi }
+  retention: 720h   # 30 days
+  storage:
+    traces:
+      backend: s3
+      s3:
+        bucket: ai-portal-artifacts
+        endpoint: minio.ai-portal-data.svc.cluster.local:9000
+        insecure: true
+        # credentials from Vault-injected env vars TEMPO_S3_ACCESS_KEY + TEMPO_S3_SECRET_KEY
+persistence:
+  enabled: false  # using S3 backend
+serviceMonitor:
+  enabled: true

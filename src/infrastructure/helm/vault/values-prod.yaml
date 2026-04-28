@@ -1,0 +1,53 @@
+# Vault — prod (HA Raft, 3 nodes)
+global:
+  image: harbor.ai.adports.ae/hashicorp/vault:1.17.3
+
+injector:
+  image:
+    repository: harbor.ai.adports.ae/hashicorp/vault-k8s
+    tag: "1.4.2"
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 250m, memory: 256Mi }
+
+server:
+  image:
+    repository: harbor.ai.adports.ae/hashicorp/vault
+    tag: "1.17.3"
+  ha:
+    enabled: true
+    replicas: 3
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "raft" {
+          path = "/vault/data"
+          retry_join {
+            leader_api_addr = "http://vault-0.vault-internal:8200"
+          }
+          retry_join {
+            leader_api_addr = "http://vault-1.vault-internal:8200"
+          }
+          retry_join {
+            leader_api_addr = "http://vault-2.vault-internal:8200"
+          }
+        }
+        service_registration "kubernetes" {}
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: 500m, memory: 1Gi }
+  dataStorage:
+    enabled: true
+    size: 50Gi
+
+ui:
+  enabled: true
+  serviceType: ClusterIP

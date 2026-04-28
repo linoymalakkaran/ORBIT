@@ -1,0 +1,33 @@
+# OpenTelemetry Collector — dev
+image:
+  repository: harbor.ai.adports.ae/otel/opentelemetry-collector-contrib
+  tag: "0.107.0"
+mode: deployment
+replicaCount: 1
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits:   { cpu: 250m, memory: 256Mi }
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc: { endpoint: "0.0.0.0:4317" }
+        http: { endpoint: "0.0.0.0:4318" }
+  processors:
+    batch: { timeout: 5s, send_batch_max_size: 1000 }
+    memory_limiter:
+      check_interval: 1s
+      limit_mib: 200
+  exporters:
+    otlp/tempo:
+      endpoint: tempo.ai-portal-observability.svc.cluster.local:4317
+      tls: { insecure: true }
+    prometheusremotewrite:
+      endpoint: http://kube-prometheus-stack-prometheus.ai-portal-observability.svc.cluster.local:9090/api/v1/write
+    loki:
+      endpoint: http://loki.ai-portal-observability.svc.cluster.local:3100/loki/api/v1/push
+  service:
+    pipelines:
+      traces:   { receivers: [otlp], processors: [memory_limiter, batch], exporters: [otlp/tempo] }
+      metrics:  { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheusremotewrite] }
+      logs:     { receivers: [otlp], processors: [memory_limiter, batch], exporters: [loki] }

@@ -1,0 +1,8 @@
+name: orbit-tanzu-cluster
+runtime: nodejs
+description: "ORBIT — TKG workload cluster provisioning on vSphere 8"
+config:
+  pulumi:tags:
+    value:
+      project: orbit
+      managed-by: pulumi

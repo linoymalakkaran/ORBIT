@@ -1,0 +1,40 @@
+# ArgoCD — dev
+global:
+  image:
+    repository: harbor.ai.adports.ae/argoproj/argocd
+    tag: "v2.12.6"
+
+server:
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 250m, memory: 256Mi }
+  extraArgs: ["--insecure"]   # TLS terminated by Kong
+
+repoServer:
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 250m, memory: 256Mi }
+
+applicationSet:
+  resources:
+    requests: { cpu: 50m,  memory: 64Mi }
+    limits:   { cpu: 100m, memory: 128Mi }
+
+controller:
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: 500m, memory: 1Gi }
+
+dex:
+  enabled: false  # Using Keycloak SSO directly
+
+configs:
+  cm:
+    oidc.config: |
+      name: Keycloak
+      issuer: https://auth.ai.adports.ae/realms/ai-portal
+      clientID: argocd
+      clientSecret: $oidc.keycloak.clientSecret
+      requestedScopes: ["openid", "profile", "email", "groups"]
+  params:
+    server.insecure: "true"

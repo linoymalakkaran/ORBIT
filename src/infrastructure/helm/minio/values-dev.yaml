@@ -1,0 +1,19 @@
+# MinIO — dev (standalone)
+image:
+  repository: harbor.ai.adports.ae/minio/minio
+  tag: "RELEASE.2024-10-02T17-50-41Z"
+mode: standalone
+persistence:
+  enabled: true
+  size: 50Gi
+resources:
+  requests: { memory: 256Mi, cpu: 250m }
+  limits:   { memory: 1Gi,   cpu: 500m }
+existingSecret: minio-root-creds
+buckets:
+  - name: ai-portal-pg-backups
+    policy: none
+  - name: ai-portal-artifacts
+    policy: none
+  - name: ai-portal-context-archive
+    policy: none

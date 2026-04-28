@@ -1,0 +1,9 @@
+# Strimzi Kafka operator — dev
+image:
+  registry: harbor.ai.adports.ae
+  repository: strimzi/operator
+  tag: "0.43.0"
+watchAnyNamespace: false
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits:   { cpu: 500m, memory: 512Mi }

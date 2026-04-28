@@ -1,0 +1,28 @@
+config:
+  vsphere:vsphereServer: "vcenter.adports.ae"
+  vsphere:allowUnverifiedSsl: "false"
+
+  orbit-tanzu-cluster:datacenter: "adports-dc01"
+  orbit-tanzu-cluster:vsphereCluster: "adports-cluster01"
+  orbit-tanzu-cluster:datastore: "adports-ds01"
+  orbit-tanzu-cluster:network: "ai-portal-network"
+  orbit-tanzu-cluster:resourcePool: "ai-portal-rp"
+  orbit-tanzu-cluster:vmFolder: "ai-portal-vms"
+  orbit-tanzu-cluster:mgmtContext: "adports-tkg-mgmt"
+
+  # Cluster sizing — prod (HA)
+  orbit-tanzu-cluster:env: "prod"
+  orbit-tanzu-cluster:controlPlaneCount: "3"
+  orbit-tanzu-cluster:controlPlaneCpu: "4"
+  orbit-tanzu-cluster:controlPlaneMemoryMb: "16384"
+  orbit-tanzu-cluster:workerSystemCount: "3"
+  orbit-tanzu-cluster:workerSystemCpu: "4"
+  orbit-tanzu-cluster:workerSystemMemoryMb: "16384"
+  orbit-tanzu-cluster:workerAppCount: "5"
+  orbit-tanzu-cluster:workerAppCpu: "8"
+  orbit-tanzu-cluster:workerAppMemoryMb: "32768"
+  orbit-tanzu-cluster:workerBatchCount: "2"
+  orbit-tanzu-cluster:workerBatchCpu: "8"
+  orbit-tanzu-cluster:workerBatchMemoryMb: "32768"
+
+  orbit-tanzu-cluster:metallbIpRange: "10.10.21.100-10.10.21.150"

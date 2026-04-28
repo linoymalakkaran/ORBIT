@@ -1,0 +1,36 @@
+# Kong Ingress Controller — prod
+image:
+  repository: harbor.ai.adports.ae/kong/kong-gateway
+  tag: "3.8.0"
+ingressController:
+  image:
+    repository: harbor.ai.adports.ae/kong/kubernetes-ingress-controller
+    tag: "3.3.1"
+  replicas: 2
+  resources:
+    requests: { cpu: 200m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+proxy:
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/address-pool: orbit-pool
+  replicas: 3
+  resources:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits:   { cpu: 1,    memory: 1Gi }
+
+env:
+  database: "off"
+  router_flavor: expressions
+  admin_gui_url: https://kong-admin.ai.adports.ae
+  admin_api_uri: https://kong-admin.ai.adports.ae
+
+admin:
+  enabled: true
+  type: ClusterIP
+
+podDisruptionBudget:
+  proxy:
+    enabled: true
+    maxUnavailable: 1

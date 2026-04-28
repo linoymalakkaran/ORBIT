@@ -1,0 +1,3 @@
+name: orbit-aks-cluster
+runtime: nodejs
+description: "ORBIT — AKS cluster provisioning (future target; placeholder)"

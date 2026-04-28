@@ -1,0 +1,69 @@
+# kube-prometheus-stack — dev
+global:
+  imageRegistry: harbor.ai.adports.ae
+
+prometheusOperator:
+  image:
+    repository: harbor.ai.adports.ae/prometheus-operator/prometheus-operator
+    tag: v0.76.2
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 200m, memory: 256Mi }
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits:   { cpu: 500m, memory: 1Gi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          resources:
+            requests: { storage: 20Gi }
+
+grafana:
+  image:
+    repository: harbor.ai.adports.ae/grafana/grafana
+    tag: "11.2.2"
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 250m, memory: 256Mi }
+  grafana.ini:
+    server:
+      domain: grafana.ai.adports.ae
+      root_url: "https://grafana.ai.adports.ae"
+    auth.generic_oauth:
+      enabled: true
+      name: Keycloak
+      allow_sign_up: true
+      scopes: openid email profile
+      auth_url: https://auth.ai.adports.ae/realms/ai-portal/protocol/openid-connect/auth
+      token_url: https://auth.ai.adports.ae/realms/ai-portal/protocol/openid-connect/token
+      api_url: https://auth.ai.adports.ae/realms/ai-portal/protocol/openid-connect/userinfo
+      client_id: grafana
+      role_attribute_path: "contains(groups[*], 'platform-admin') && 'Admin' || 'Viewer'"
+  envValueFrom:
+    GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+      secretKeyRef: { name: grafana-oidc-secret, key: client-secret }
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 50m,  memory: 64Mi }
+      limits:   { cpu: 100m, memory: 128Mi }
+
+kubeStateMetrics:
+  image:
+    repository: harbor.ai.adports.ae/kube-state-metrics/kube-state-metrics
+    tag: v2.13.0
+
+nodeExporter:
+  enabled: true
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: false
+    kubeScheduler: false

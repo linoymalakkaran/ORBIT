@@ -1,0 +1,22 @@
+# EventStoreDB — prod (3-node cluster, TLS on)
+image:
+  repository: harbor.ai.adports.ae/eventstore/eventstore
+  tag: "24.10.1-bookworm-slim"
+clusterSize: 3
+eventStoreConfig:
+  EVENTSTORE_INSECURE: "false"
+  EVENTSTORE_MEM_DB: "false"
+  EVENTSTORE_RUN_PROJECTIONS: "System"
+  EVENTSTORE_MAX_APPEND_SIZE: "104857600"
+persistence:
+  enabled: true
+  size: 50Gi
+resources:
+  requests: { memory: 1Gi, cpu: 500m }
+  limits:   { memory: 2Gi, cpu: 1 }
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+metrics:
+  serviceMonitor:
+    enabled: true

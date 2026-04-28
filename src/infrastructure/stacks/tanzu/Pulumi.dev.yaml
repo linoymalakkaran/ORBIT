@@ -1,0 +1,33 @@
+config:
+  # vSphere connection
+  vsphere:vsphereServer: "vcenter.adports.ae"       # CHANGE: your vCenter FQDN/IP
+  vsphere:allowUnverifiedSsl: "false"
+
+  # vSphere topology
+  orbit-tanzu-cluster:datacenter: "adports-dc01"    # CHANGE: your vSphere datacenter name
+  orbit-tanzu-cluster:vsphereCluster: "adports-cluster01"
+  orbit-tanzu-cluster:datastore: "adports-ds01"
+  orbit-tanzu-cluster:network: "ai-portal-network"
+  orbit-tanzu-cluster:resourcePool: "ai-portal-rp"
+  orbit-tanzu-cluster:vmFolder: "ai-portal-vms"
+
+  # TKG management cluster context name (from ~/.kube/config)
+  orbit-tanzu-cluster:mgmtContext: "adports-tkg-mgmt"
+
+  # Cluster sizing — dev (smaller)
+  orbit-tanzu-cluster:env: "dev"
+  orbit-tanzu-cluster:controlPlaneCount: "1"
+  orbit-tanzu-cluster:controlPlaneCpu: "4"
+  orbit-tanzu-cluster:controlPlaneMemoryMb: "16384"
+  orbit-tanzu-cluster:workerSystemCount: "3"
+  orbit-tanzu-cluster:workerSystemCpu: "4"
+  orbit-tanzu-cluster:workerSystemMemoryMb: "16384"
+  orbit-tanzu-cluster:workerAppCount: "3"
+  orbit-tanzu-cluster:workerAppCpu: "8"
+  orbit-tanzu-cluster:workerAppMemoryMb: "32768"
+
+  # MetalLB IP pool (L2 mode) — CHANGE to your allocated CIDR
+  orbit-tanzu-cluster:metallbIpRange: "10.10.20.100-10.10.20.150"
+
+  # Internal PKI — base64-encoded CA cert PEM
+  # orbit-tanzu-cluster:internalCaCert: "<set via: pulumi config set --secret>"

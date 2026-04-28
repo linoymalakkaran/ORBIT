@@ -1,0 +1,15 @@
+# EventStoreDB — dev (single node, insecure for easy dev access)
+image:
+  repository: harbor.ai.adports.ae/eventstore/eventstore
+  tag: "24.10.1-bookworm-slim"
+clusterSize: 1
+eventStoreConfig:
+  EVENTSTORE_INSECURE: "true"
+  EVENTSTORE_MEM_DB: "false"
+  EVENTSTORE_RUN_PROJECTIONS: "System"
+persistence:
+  enabled: true
+  size: 10Gi
+resources:
+  requests: { memory: 512Mi, cpu: 250m }
+  limits:   { memory: 1Gi,   cpu: 500m }

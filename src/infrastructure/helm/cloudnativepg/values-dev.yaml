@@ -1,0 +1,7 @@
+# CloudNativePG operator — dev overrides
+image:
+  repository: harbor.ai.adports.ae/cloudnative-pg/cloudnative-pg
+  tag: "1.24.1"
+resources:
+  requests: { cpu: 100m, memory: 200Mi }
+  limits:   { cpu: 500m, memory: 400Mi }

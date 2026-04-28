@@ -1,0 +1,8 @@
+name: orbit-k8s-platform
+runtime: nodejs
+description: "ORBIT — Kubernetes platform resources (cluster-agnostic)"
+config:
+  pulumi:tags:
+    value:
+      project: orbit
+      managed-by: pulumi

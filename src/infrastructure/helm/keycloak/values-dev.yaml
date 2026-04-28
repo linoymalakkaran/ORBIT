@@ -1,0 +1,30 @@
+# Keycloak — dev
+image:
+  registry: harbor.ai.adports.ae
+  repository: bitnami/keycloak
+  tag: "25.0.6"
+replicaCount: 1
+auth:
+  existingSecret: keycloak-admin-creds
+  passwordSecretKey: admin-password
+extraEnvVars:
+  - name: KC_HOSTNAME
+    value: auth.ai.adports.ae
+  - name: KC_HOSTNAME_STRICT
+    value: "false"   # relaxed in dev
+  - name: KC_PROXY
+    value: edge
+  - name: KC_DB
+    value: postgres
+  - name: KC_DB_URL
+    value: jdbc:postgresql://orbit-postgres-dev-rw.ai-portal-data.svc.cluster.local:5432/ai_portal_keycloak
+  - name: KC_DB_USERNAME
+    value: orbit_app
+  - name: KC_FEATURES
+    value: token-exchange,fine-grained-authz
+  - name: KC_LOG_LEVEL
+    value: DEBUG
+extraEnvVarsSecret: keycloak-db-creds
+resources:
+  requests: { memory: 512Mi, cpu: 250m }
+  limits:   { memory: 1Gi,   cpu: 500m }

@@ -1,0 +1,12 @@
+# CloudNativePG operator — prod overrides
+image:
+  repository: harbor.ai.adports.ae/cloudnative-pg/cloudnative-pg
+  tag: "1.24.1"
+replicaCount: 2
+resources:
+  requests: { cpu: 250m, memory: 256Mi }
+  limits:   { cpu: 1,    memory: 512Mi }
+monitoring:
+  podMonitorEnabled: true
+  grafanaDashboard:
+    create: true

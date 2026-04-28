@@ -1,0 +1,44 @@
+# ArgoCD — prod
+global:
+  image:
+    repository: harbor.ai.adports.ae/argoproj/argocd
+    tag: "v2.12.6"
+
+server:
+  replicas: 2
+  resources:
+    requests: { cpu: 200m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+  extraArgs: ["--insecure"]
+
+repoServer:
+  replicas: 2
+  resources:
+    requests: { cpu: 200m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+applicationSet:
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 200m, memory: 256Mi }
+
+controller:
+  replicas: 1   # stateful — 1 active + election
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits:   { cpu: 1,    memory: 2Gi }
+
+dex:
+  enabled: false
+
+configs:
+  cm:
+    oidc.config: |
+      name: Keycloak
+      issuer: https://auth.ai.adports.ae/realms/ai-portal
+      clientID: argocd
+      clientSecret: $oidc.keycloak.clientSecret
+      requestedScopes: ["openid", "profile", "email", "groups"]
+  params:
+    server.insecure: "true"

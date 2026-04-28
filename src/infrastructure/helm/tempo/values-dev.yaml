@@ -1,0 +1,17 @@
+# Tempo — dev
+image:
+  repository: harbor.ai.adports.ae/grafana/tempo
+  tag: "2.5.0"
+tempo:
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 250m, memory: 512Mi }
+  retention: 168h   # 7 days
+  storage:
+    traces:
+      backend: local
+persistence:
+  enabled: true
+  size: 20Gi
+serviceMonitor:
+  enabled: true

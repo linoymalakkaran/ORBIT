@@ -1,0 +1,10 @@
+config:
+  orbit-k8s-platform:env: "dev"
+  orbit-k8s-platform:domain: "ai.adports.ae"
+  orbit-k8s-platform:gitRepo: "https://github.com/linoymalakkaran/ORBIT.git"
+  orbit-k8s-platform:gitBranch: "main"
+  orbit-k8s-platform:harborRegistry: "harbor.ai.adports.ae"
+  orbit-k8s-platform:metallbIpRange: "10.10.20.100-10.10.20.150"
+  # orbit-k8s-platform:kubeconfigPath: "~/.kube/orbit-dev.yaml"
+  # orbit-k8s-platform:internalCaCert: "<set via: pulumi config set --secret>"
+  # orbit-k8s-platform:argocdAdminPassword: "<set via: pulumi config set --secret>"

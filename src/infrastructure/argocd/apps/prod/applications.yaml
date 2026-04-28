@@ -1,0 +1,185 @@
+# ArgoCD Application manifests for the prod environment.
+# These are watched by the orbit-infra app-of-apps Application.
+---
+# Postgres
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-postgres-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://cloudnative-pg.github.io/charts
+      chart: cloudnative-pg
+      targetRevision: "0.22.1"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/cloudnativepg/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-data
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true"]
+---
+# Redis
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-redis-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://charts.bitnami.com/bitnami
+      chart: redis-cluster
+      targetRevision: "11.0.6"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/redis/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-data
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+---
+# Kafka (Strimzi operator)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-kafka-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://strimzi.io/charts
+      chart: strimzi-kafka-operator
+      targetRevision: "0.43.0"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/strimzi/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-data
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+---
+# EventStoreDB
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-eventstore-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://eventstore.github.io/EventStore.Charts
+      chart: eventstore
+      targetRevision: "0.4.3"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/eventstore/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-data
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+---
+# MinIO
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-minio-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://charts.min.io
+      chart: minio
+      targetRevision: "5.2.0"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/minio/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-data
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+---
+# Keycloak
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-keycloak-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://charts.bitnami.com/bitnami
+      chart: keycloak
+      targetRevision: "22.2.4"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/keycloak/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-keycloak
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+---
+# Observability
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orbit-observability-prod
+  namespace: ai-portal-system
+  labels: { project: orbit, env: prod }
+  finalizers: ["resources-finalizer.argocd.argoproj.io"]
+spec:
+  project: orbit
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: "62.6.0"
+      helm:
+        valueFiles:
+          - $values/src/infrastructure/helm/kube-prometheus-stack/values-prod.yaml
+    - repoURL: https://github.com/linoymalakkaran/ORBIT.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-portal-observability
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
