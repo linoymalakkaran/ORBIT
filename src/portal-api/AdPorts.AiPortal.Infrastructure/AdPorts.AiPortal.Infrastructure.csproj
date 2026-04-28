@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>AdPorts.AiPortal.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" PrivateAssets="all" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+    <PackageReference Include="DbUp-PostgreSQL" Version="5.0.4" />
+    <PackageReference Include="OpenFga.Sdk" Version="0.7.0" />
+    <PackageReference Include="Confluent.Kafka" Version="2.6.0" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.401" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta.12" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AdPorts.AiPortal.Application\AdPorts.AiPortal.Application.csproj" />
+  </ItemGroup>
+</Project>

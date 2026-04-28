@@ -1,0 +1,37 @@
+# OpenFGA Authorization Model — AI Portal
+model:
+  schema: 1.1
+
+type user
+
+type project
+  relations:
+    define owner: [user]
+    define architect: [user] or owner
+    define tech_lead: [user] or architect
+    define developer: [user] or tech_lead
+    define observer: [user] or developer
+    define can_approve: architect or tech_lead
+    define can_write: developer
+    define can_read: observer
+    define can_manage_fleet: [user]
+    define can_administer: [user]
+
+type skill
+  relations:
+    define author: [user]
+    define can_edit: author
+    define can_read: [user]
+
+type fleet_campaign
+  relations:
+    define manager: [user]
+    define affected_tech_lead: [user]
+    define can_approve: manager
+    define can_view: affected_tech_lead or manager
+
+type artifact
+  relations:
+    define project: [project]
+    define can_approve: can_approve from project
+    define can_read: can_read from project
