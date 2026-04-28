@@ -1,0 +1,74 @@
+## ApplicationSet — all ORBIT microservices deployed from src/*/k8s/
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: orbit-services
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - service: portal-api
+            namespace: ai-portal
+            path: src/portal-api/k8s
+          - service: portal-ui
+            namespace: ai-portal
+            path: src/portal-ui/k8s
+          - service: pipeline-ledger
+            namespace: ai-portal
+            path: src/pipeline-ledger/k8s
+          - service: capability-fabric
+            namespace: ai-portal
+            path: src/capability-fabric/k8s
+          - service: mcp-servers
+            namespace: ai-portal
+            path: src/mcp-servers/k8s
+          - service: orchestrator
+            namespace: ai-portal
+            path: src/orchestrator/k8s
+          - service: hook-engine
+            namespace: ai-portal
+            path: src/hook-engine/k8s
+          - service: project-registry-agent
+            namespace: ai-portal
+            path: src/project-registry-agent/k8s
+          - service: health-monitor-agent
+            namespace: ai-portal
+            path: src/health-monitor-agent/k8s
+          - service: pr-review-agent
+            namespace: ai-portal
+            path: src/pr-review-agent/k8s
+          - service: ba-agent
+            namespace: ai-portal
+            path: src/ba-agent/k8s
+          - service: pm-agent
+            namespace: ai-portal
+            path: src/pm-agent/k8s
+          - service: vulnerability-radar-agent
+            namespace: ai-portal
+            path: src/vulnerability-radar-agent/k8s
+          - service: fleet-upgrade-agent
+            namespace: ai-portal
+            path: src/fleet-upgrade-agent/k8s
+          - service: docs-agent
+            namespace: ai-portal
+            path: src/docs-agent/k8s
+  template:
+    metadata:
+      name: "orbit-{{service}}"
+    spec:
+      project: orbit
+      source:
+        repoURL: https://github.com/linoymalakkaran/ORBIT.git
+        targetRevision: main
+        path: "{{path}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{namespace}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

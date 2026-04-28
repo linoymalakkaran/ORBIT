@@ -1,0 +1,73 @@
+## ApplicationSet — infrastructure components (Helm charts)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: orbit-infra
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: litellm
+            namespace: litellm
+            repoURL: https://github.com/linoymalakkaran/ORBIT.git
+            path: infra/litellm
+            chart: ""
+          - name: temporal
+            namespace: temporal
+            repoURL: https://temporalio.github.io/helm-charts
+            chart: temporal
+            version: "0.52.0"
+            valuesPath: infra/temporal/values.yaml
+          - name: kafka-operator
+            namespace: kafka
+            repoURL: https://strimzi.io/charts/
+            chart: strimzi-kafka-operator
+            version: "0.41.0"
+            valuesPath: infra/kafka/operator-values.yaml
+          - name: kube-prometheus-stack
+            namespace: monitoring
+            repoURL: https://prometheus-community.github.io/helm-charts
+            chart: kube-prometheus-stack
+            version: "60.3.0"
+            valuesPath: infra/observability/prometheus-grafana-values.yaml
+          - name: loki
+            namespace: monitoring
+            repoURL: https://grafana.github.io/helm-charts
+            chart: loki
+            version: "6.6.3"
+            valuesPath: infra/observability/loki-values.yaml
+          - name: tempo
+            namespace: monitoring
+            repoURL: https://grafana.github.io/helm-charts
+            chart: tempo
+            version: "1.9.0"
+            valuesPath: infra/observability/tempo-values.yaml
+          - name: otel-collector
+            namespace: monitoring
+            repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+            chart: opentelemetry-collector
+            version: "0.97.1"
+            valuesPath: infra/observability/otel-collector-values.yaml
+  template:
+    metadata:
+      name: "orbit-infra-{{name}}"
+    spec:
+      project: orbit
+      source:
+        repoURL: "{{repoURL}}"
+        targetRevision: "{{version}}"
+        chart: "{{chart}}"
+        helm:
+          valueFiles:
+            - "{{valuesPath}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{namespace}}"
+      syncPolicy:
+        automated:
+          prune: false   # infra: manual prune for safety
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
