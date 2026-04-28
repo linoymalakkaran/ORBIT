@@ -1,9 +1,39 @@
 using AdPorts.AiPortal.Application.Common.Interfaces;
 using MediatR;
 
-// Context is backed by Redis (Phase 06). These are stub handlers returning empty results
-// until the Redis context service is wired in Phase 06.
+// Phase 06: Context handlers wired to IContextService (Redis-backed)
 
+// ── Query: get thread ─────────────────────────────────────────────────────────
+namespace AdPorts.AiPortal.Application.Context.Queries.GetContextThread;
+public record GetContextThreadQuery(Guid ProjectId) : IRequest<IReadOnlyList<ContextMessage>>;
+public class GetContextThreadHandler(IContextService ctx)
+    : IRequestHandler<GetContextThreadQuery, IReadOnlyList<ContextMessage>>
+{
+    public Task<IReadOnlyList<ContextMessage>> Handle(GetContextThreadQuery q, CancellationToken ct)
+        => ctx.GetThreadAsync(q.ProjectId, ct);
+}
+
+// ── Command: append message ───────────────────────────────────────────────────
+namespace AdPorts.AiPortal.Application.Context.Commands.AppendContext;
+public record AppendContextCommand(Guid ProjectId, string Role, string Content)
+    : IRequest<IReadOnlyList<ContextMessage>>;
+public class AppendContextHandler(IContextService ctx)
+    : IRequestHandler<AppendContextCommand, IReadOnlyList<ContextMessage>>
+{
+    public Task<IReadOnlyList<ContextMessage>> Handle(AppendContextCommand cmd, CancellationToken ct)
+        => ctx.AppendAsync(cmd.ProjectId, cmd.Role, cmd.Content, ct);
+}
+
+// ── Command: clear thread ─────────────────────────────────────────────────────
+namespace AdPorts.AiPortal.Application.Context.Commands.ClearContext;
+public record ClearContextCommand(Guid ProjectId) : IRequest;
+public class ClearContextHandler(IContextService ctx) : IRequestHandler<ClearContextCommand>
+{
+    public async Task Handle(ClearContextCommand cmd, CancellationToken ct)
+        => await ctx.ClearThreadAsync(cmd.ProjectId, ct);
+}
+
+// ── Legacy stubs kept for backward compat (return empty) ─────────────────────
 namespace AdPorts.AiPortal.Application.Context.Queries.GetContextSessions;
 public record GetContextSessionsQuery(Guid ProjectId) : IRequest<IReadOnlyList<string>>;
 public class GetContextSessionsHandler : IRequestHandler<GetContextSessionsQuery, IReadOnlyList<string>>

@@ -1,36 +1,40 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AdPorts.AiPortal.Application.Context.Queries.GetContextThread;
+using AdPorts.AiPortal.Application.Context.Commands.AppendContext;
+using AdPorts.AiPortal.Application.Context.Commands.ClearContext;
 
 namespace AdPorts.AiPortal.Api.Controllers;
 
 [ApiController]
-[Route("api/projects/{projectId:guid}/context")]
+[Route("api/context/{projectId:guid}")]
 [Authorize]
 public class ContextController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetSessions(Guid projectId, CancellationToken ct)
+    public async Task<IActionResult> GetThread(Guid projectId, CancellationToken ct)
     {
-        var result = await mediator.Send(
-            new Application.Context.Queries.GetContextSessions.GetContextSessionsQuery(projectId), ct);
+        var result = await mediator.Send(new GetContextThreadQuery(projectId), ct);
         return Ok(result);
     }
 
-    [HttpGet("{sessionId}")]
-    public async Task<IActionResult> GetTurns(Guid projectId, string sessionId, CancellationToken ct)
+    [HttpPost]
+    public async Task<IActionResult> Append(Guid projectId,
+        [FromBody] AppendRequest body, CancellationToken ct)
     {
         var result = await mediator.Send(
-            new Application.Context.Queries.GetContextTurns.GetContextTurnsQuery(projectId, sessionId), ct);
+            new AppendContextCommand(projectId, body.Role ?? "user", body.Message), ct);
         return Ok(result);
     }
 
-    [HttpPost("{sessionId}/turns")]
-    public async Task<IActionResult> AddTurn(Guid projectId, string sessionId,
-        [FromBody] Application.Context.Commands.AddContextTurn.AddContextTurnCommand cmd,
-        CancellationToken ct)
+    [HttpDelete]
+    public async Task<IActionResult> Clear(Guid projectId, CancellationToken ct)
     {
-        await mediator.Send(cmd with { ProjectId = projectId, SessionId = sessionId }, ct);
-        return Accepted();
+        await mediator.Send(new ClearContextCommand(projectId), ct);
+        return NoContent();
     }
 }
+
+public record AppendRequest(string Message, string? Role);
+
