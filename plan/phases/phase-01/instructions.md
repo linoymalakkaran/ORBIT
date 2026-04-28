@@ -6,9 +6,12 @@
 
 ## Context
 
-You are working on the **AI Portal Platform Infrastructure** — an AKS-based Kubernetes cluster hosting PostgreSQL, Redis, Kafka, EventStoreDB, HashiCorp Vault, Keycloak, Kong Ingress, ArgoCD, and the observability stack (Prometheus, Grafana, Loki, Tempo, OpenTelemetry).
+You are working on the **AI Portal Platform Infrastructure** — an on-premise **VMware Tanzu Kubernetes Grid (TKG)** cluster on vSphere 8, hosting PostgreSQL, Redis, Kafka, EventStoreDB, HashiCorp Vault, Keycloak, Kong Ingress, ArgoCD, Harbor, MinIO, and the observability stack (Prometheus, Grafana, Loki, Tempo, OpenTelemetry).
 
-All infrastructure is defined as **Pulumi (TypeScript)** code. All Kubernetes deployments are via **Helm charts** managed by **ArgoCD** (app-of-apps pattern). No `kubectl apply -f` commands directly — everything goes through GitOps.
+All infrastructure is defined as **Pulumi (TypeScript)** code in provider-abstracted stacks. All Kubernetes deployments are via **Helm charts** managed by **ArgoCD** (app-of-apps pattern). No `kubectl apply -f` commands directly — everything goes through GitOps.
+
+**Platform target (current):** `stacks/tanzu/` — uses `@pulumi/vsphere` for cluster provisioning.
+**Platform target (future):** `stacks/aks/` — uses `@pulumi/azure-native`; all `k8s/` shared resources reuse unchanged.
 
 ---
 
@@ -16,13 +19,13 @@ All infrastructure is defined as **Pulumi (TypeScript)** code. All Kubernetes de
 
 ### Pulumi (TypeScript)
 
-- Use `@pulumi/azure-native` for all Azure resources (not the legacy `@pulumi/azure`).
-- Use `@pulumi/kubernetes` for Kubernetes resources.
+- **On-prem Tanzu stacks (`stacks/tanzu/`):** Use `@pulumi/vsphere` for vSphere resources (VMs, resource pools, folders, network segments) and `@pulumi/kubernetes` for K8s resources.
+- **Future AKS stacks (`stacks/aks/`):** Use `@pulumi/azure-native` for Azure resources and `@pulumi/kubernetes` for K8s resources. Do NOT mix providers in the same stack.
 - All resource names follow `adports-ai-{component}-{env}` pattern (e.g., `adports-ai-postgres-dev`).
-- Use `pulumi.Config` for environment-specific values; never hardcode subscription IDs, resource group names, or tenant IDs.
+- Use `pulumi.Config` for environment-specific values; never hardcode vSphere datacenter names, cluster names, or network names.
 - Stack references: use `new pulumi.StackReference("org/infra/dev")` when stacks depend on each other.
-- Every resource must have `tags: { project: "ai-portal", phase: "01", env: stack.name }`.
-- Outputs: export all connection strings, endpoints, and resource IDs as stack outputs (they will be consumed by Phase 02+).
+- Every resource must have a `tags` / annotation: `{ project: "ai-portal", phase: "01", env: stack.name }`.
+- Outputs: export all connection strings, endpoints, and resource IDs as stack outputs (consumed by Phase 02+).
 
 ```typescript
 // CORRECT pattern
@@ -108,10 +111,12 @@ spec:
 
 - Do not use `kubectl apply` directly — all changes go through ArgoCD.
 - Do not store passwords or API keys in Pulumi outputs, Git, or Kubernetes Secrets.
-- Do not create Azure resources outside of Pulumi — no ClickOps.
+- Do not create vSphere/Tanzu resources outside of Pulumi — no manual ClickOps in vCenter.
 - Do not expose services externally without Kong ingress and cert-manager TLS.
 - Do not use `latest` image tags — pin to specific digest or semantic version.
 - Do not skip resource limits or probes — every container must have both.
+- Do not put Azure-specific resources in the shared `k8s/` layer — keep it platform-agnostic.
+- Do not pull images from public registries directly — all images must be mirrored to Harbor first.
 
 ---
 

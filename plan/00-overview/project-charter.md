@@ -44,9 +44,9 @@ The **AI Portal** is a centralized orchestration platform organized as a **capab
 
 | Category | Included |
 |----------|----------|
-| Project scaffolding | .NET CQRS + Angular MFE + Postgres + Keycloak + AKS |
+| Project scaffolding | .NET CQRS + Angular MFE + Postgres + Keycloak + Kubernetes (Tanzu-first) |
 | CI/CD pipelines | GitLab CI + Azure DevOps with SAST, SCA, quality gates |
-| Infrastructure provisioning | AKS namespaces, Azure resources via Pulumi/Terraform |
+| Infrastructure provisioning | Kubernetes namespaces, on-premise Tanzu resources via Pulumi (future: AKS via provider swap) |
 | QA automation | Playwright E2E, k6 load, Axe accessibility, contract tests |
 | Integration testing | Postman/Newman collections for deployed-system verification |
 | BA/PM automation | User story generation for Jira and Azure DevOps |
@@ -61,7 +61,7 @@ The **AI Portal** is a centralized orchestration platform organized as a **capab
 
 ### Out of Scope
 
-- Replacing Keycloak, AKS, PostgreSQL, or any existing production runtime.
+- Replacing Keycloak, the Kubernetes platform, PostgreSQL, or any existing production runtime.
 - Building a proprietary DSL or new IDE.
 - Building a low-code/no-code platform for business users.
 - Replacing GitLab or Azure DevOps as VCS/CI platforms.
@@ -127,7 +127,7 @@ All scope changes go through the Product Owner. Changes above a declared complex
 | Category | Approach |
 |----------|----------|
 | LLM costs | Per-project budget hooks; portfolio-level cap; self-hosted fallback in Phase 4 |
-| Cloud infrastructure | AKS cluster sized for Phase 1; auto-scaling enabled; reviewed at each Gate |
+| On-premise infrastructure | TKG cluster sized for Phase 1; cluster autoscaler configured; reviewed at each Gate. Future AKS migration supported via provider-abstracted IaC |
 | Tooling licences | SonarQube, Checkmarx, LangSmith — enterprise licences negotiated before Phase 1 |
 | Personnel | Squad model; external consultants for specialist gaps (LangGraph, Temporal.io) |
 | Open-source | All integrate decisions are open-source or managed services; no proprietary agent runtimes |

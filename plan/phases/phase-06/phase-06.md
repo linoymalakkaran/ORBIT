@@ -14,7 +14,7 @@ Implement the **Shared Project Context** — a Redis-backed, team-shared AI coll
 4. Implement decision extraction logic (identify decision turns from context thread).
 5. Implement cross-project context referencing with explicit permission grants.
 6. Implement context scrubbing (redact credentials, PII, secrets before Redis write).
-7. Implement context archival (Redis TTL → cold storage in Azure Blob).
+7. Implement context archival (Redis TTL → cold storage in MinIO S3 bucket).
 8. Wire context reads/writes to Pipeline Ledger events.
 9. Implement context conflict resolution (two users writing simultaneously).
 10. Wire context into the Portal API and UI (Phase 03 + Phase 04 stubs filled in).
@@ -163,7 +163,7 @@ Orchestrator:
 1. Background worker runs every hour
 2. Finds sessions where last_activity > 7 days
 3. Serializes full session (metadata + all turns) to JSON
-4. Uploads to Azure Blob: context/{projectId}/{sessionId}/{timestamp}.json.gz
+4. Uploads to MinIO (S3-compatible): context/{projectId}/{sessionId}/{timestamp}.json.gz
 5. Records blob URI in Postgres (context_archives table)
 6. DEL Redis keys for the archived session
 7. Records Ledger event: context.session.archived
@@ -224,7 +224,7 @@ GET /api/projects/{id}/context/sessions/{sessionId}/archived
 - Scrubbing test suite: all 7 pattern types detected and redacted.
 - Cross-project referencing works with grant; blocked without grant.
 - 100 concurrent writes produce no lost turns.
-- Archived sessions recoverable from Azure Blob.
+- Archived sessions recoverable from MinIO S3 bucket.
 - Ledger records every cross-project reference access.
 
 ---

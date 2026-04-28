@@ -186,7 +186,7 @@
 **Description:** Append-only ledger grows unbounded; storage costs become material; query performance degrades over time.
 
 **Mitigation:**
-- Tiered storage: Redis (hot, 7 days), EventStoreDB (warm, 1 year), Azure Blob immutable bucket (cold, indefinite).
+- Tiered storage: Redis (hot, 7 days), EventStoreDB (warm, 1 year), MinIO immutable bucket (cold, indefinite).
 - Postgres index compaction on a monthly schedule.
 - Retention policy by compliance class: standard (3 years warm), NESA-regulated (7 years warm).
 - Storage cost reviewed quarterly; tiering thresholds adjusted as data grows.
@@ -301,7 +301,7 @@
 
 **Mitigation:**
 - LiteLLM automatic provider fallback: Premium (Claude) → Standard (GPT-4o) → Economy (DeepSeek) on `ProviderOutage` error.
-- Sovereign tier (vLLM on AKS) is always available and unaffected by cloud provider outages.
+- Sovereign tier (vLLM on TKG GPU nodes, on-premise) is always available and unaffected by cloud provider outages.
 - Portal UI surfaces degraded mode banner when fallback is active.
 - SLA monitoring with PagerDuty alert if primary provider unavailable > 15 min.
 - Monthly DR drill: simulate outage, verify fallback chain routes correctly.
@@ -326,7 +326,7 @@
 - Service account client secrets rotated every 90 days via Vault automation.
 - All MCP tool calls validated by Hook Engine — even if token is valid, policy limits what actions are permitted.
 - Pipeline Ledger provides tamper-evident audit trail; anomalous behaviour is detectable.
-- MCP servers run with least-privilege AKS service accounts (no cluster-admin).
+- MCP servers run with least-privilege Kubernetes service accounts (no cluster-admin).
 - Keycloak short-lived tokens (15 min max expiry) for service-to-service calls.
 - Anomaly detection: volume of MCP calls per service account alerted on > 2× baseline.
 
@@ -334,7 +334,7 @@
 
 ---
 
-### R15 — AKS Version End-of-Life
+### R15 — Kubernetes / Tanzu Version End-of-Life
 
 | Field | Value |
 |-------|-------|
@@ -344,14 +344,15 @@
 | **Phase** | 01, 24, ongoing |
 | **Owner** | Infra Squad Lead |
 
-**Description:** AKS 1.30.x reaches end of support. Unpatched Kubernetes clusters expose the Portal to CVEs with no vendor fixes available.
+**Description:** TKG 2.x or the underlying Kubernetes minor version reaches end of support. Unpatched clusters expose the Portal to CVEs with no vendor fixes available. When the platform extends to AKS, the same lifecycle risk applies to that target.
 
 **Mitigation:**
 - `framework-lifecycle-policy.md` mandates upgrade within 60 days of a minor version reaching end-of-support.
-- Fleet Upgrade Agent (Phase 24) manages AKS node pool upgrades.
+- Fleet Upgrade Agent (Phase 24) manages node pool and control-plane upgrades across all cluster targets.
 - Staging cluster upgraded first; 1-week validation window before production upgrade.
-- Azure Advisor alerts enable 90-day advance notice of deprecation.
-- AKS upgrade tested in CI via ephemeral clusters on each quarterly release.
+- Tanzu Mission Control (TMC) provides advance notice of TKG version deprecations.
+- Kubernetes upgrade tested in CI via ephemeral clusters on each quarterly release.
+- Future AKS target: Azure Advisor alerts for 90-day advance deprecation notice.
 
 **Residual Risk After Mitigation:** Low
 

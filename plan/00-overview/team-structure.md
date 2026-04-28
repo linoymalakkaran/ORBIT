@@ -14,9 +14,9 @@ The AI Portal is built by **9 specialized squads**, each owning a coherent verti
 
 | Role | Count | Responsibilities |
 |------|-------|----------------|
-| Senior DevOps Engineer | 1 | AKS cluster, cert-manager, Kong ingress, ArgoCD |
+| Senior DevOps Engineer | 1 | TKG cluster (on-prem Tanzu), cert-manager, Kong ingress, ArgoCD, MetalLB |
 | Platform Engineer | 1 | Postgres HA, Redis Cluster, Kafka, EventStoreDB |
-| Security Engineer | 1 | Keycloak setup, Vault, NSG rules, Key Vault |
+| Security Engineer | 1 | Keycloak setup, Vault, NSX-T / Network Policies, Harbor registry |
 
 **Outputs:** Running infrastructure, Helm charts, Terraform/Pulumi modules, Keycloak base realm.
 
@@ -43,7 +43,7 @@ The AI Portal is built by **9 specialized squads**, each owning a coherent verti
 | Role | Count | Responsibilities |
 |------|-------|----------------|
 | Principal Architect | 1 | Skills/specs/instructions authoring, quality reviews |
-| Senior .NET Engineer | 1 | MCP server implementations (Keycloak, GitLab, AKS) |
+| Senior .NET Engineer | 1 | MCP server implementations (Keycloak, GitLab, Kubernetes/Tanzu) |
 | Python Engineer | 1 | MCP server implementations (Jira, Postgres, SonarQube) |
 | Technical Writer | 1 | Instruction documents, skill documentation |
 

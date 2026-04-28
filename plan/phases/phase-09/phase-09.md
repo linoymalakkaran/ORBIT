@@ -8,7 +8,7 @@ Implement the remaining MCP servers that power specialist agents and enable deep
 
 ## Objectives
 
-1. **AKS MCP Server** — Kubernetes operations (namespace, Helm, pod logs).
+1. **Kubernetes MCP Server** — Kubernetes operations on any cluster target (Tanzu-first; also works on AKS): namespace listing, Helm apply, pod logs.
 2. **PostgreSQL MCP Server** — Database operations (create DB, apply migration, schema diff).
 3. **Jira MCP Server** — Work item management (create epic/story, transition, link commits).
 4. **Azure Boards MCP Server** — Azure DevOps work items (same patterns as Jira).
@@ -24,7 +24,7 @@ Implement the remaining MCP servers that power specialist agents and enable deep
 ## Prerequisites
 
 - Phase 08 (MCP base framework, Registry, CLI skeleton).
-- Phase 01 (AKS credentials, Vault, SonarQube, Checkmarx in Vault).
+- Phase 01 (TKG credentials, Vault, SonarQube, Checkmarx in Vault).
 - Jira API token / Azure DevOps PAT in Vault.
 - SonarQube + Checkmarx instances accessible.
 
@@ -42,7 +42,7 @@ Implement the remaining MCP servers that power specialist agents and enable deep
 
 | # | MCP Server | Key Tools | Acceptance Criterion |
 |---|-----------|----------|---------------------|
-| D1 | AKS MCP | 6 tools | Helm chart deployed via MCP; pod logs retrieved |
+| D1 | Kubernetes MCP | 6 tools | Helm chart deployed via MCP; pod logs retrieved |
 | D2 | PostgreSQL MCP | 6 tools | New DB created via MCP; migration applied |
 | D3 | Jira MCP | 7 tools | Epic + stories created and linked via MCP |
 | D4 | Azure Boards MCP | 6 tools | Work items created in Azure DevOps |
@@ -55,16 +55,16 @@ Implement the remaining MCP servers that power specialist agents and enable deep
 
 ---
 
-## AKS MCP Server — Tool Catalog
+## Kubernetes MCP Server — Tool Catalog
 
 ```python
 @server.mcp.tool("list_namespaces")
 async def list_namespaces(cluster: str, ctx) -> list[dict]:
-    """List AKS namespaces with resource quotas."""
+    """List Kubernetes namespaces with resource quotas (works on Tanzu TKG and AKS)."""
 
 @server.mcp.tool("apply_helm_chart")
 async def apply_helm_chart(namespace: str, chart: str, values: dict, ctx) -> dict:
-    """Apply a Helm chart to an AKS namespace (requires infra:write permission)."""
+    """Apply a Helm chart to a Kubernetes namespace (requires infra:write permission). Works on Tanzu and AKS."""
     require_permission(ctx, "infra:write")
     require_hook_pass("pre-helm-apply", {"namespace": namespace, "chart": chart})
     result = await helm.upgrade_install(namespace, chart, values)

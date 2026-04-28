@@ -1,15 +1,29 @@
 # Phase 01 — External References
 
-## Azure & AKS
+## VMware Tanzu (Primary Platform)
 
 | Resource | URL | Notes |
 |----------|-----|-------|
-| AKS Best Practices | https://learn.microsoft.com/en-us/azure/aks/best-practices | Start here for cluster design |
-| AKS Private Cluster | https://learn.microsoft.com/en-us/azure/aks/private-cluster | Use for production |
-| CIS AKS Benchmark | https://www.cisecurity.org/benchmark/kubernetes | Security baseline |
-| AKS Workload Identity | https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview | Preferred over pod identity |
-| Azure CNI Overlay | https://learn.microsoft.com/en-us/azure/aks/azure-cni-overlay | Networking option |
-| Pulumi Azure Native | https://www.pulumi.com/registry/packages/azure-native/ | Pulumi provider docs |
+| TKG 2.x Documentation | https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/2.5/tkg-deploy-mc/GUID-index.html | Start here for cluster design |
+| TKG Management Cluster | https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/2.5/tkg-deploy-mc/GUID-mgmt-clusters-index.html | Management cluster setup |
+| TKG Workload Clusters | https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/2.5/using-tkg/workload-clusters-index.html | Workload cluster provisioning |
+| vSphere with Tanzu | https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-with-tanzu-getting-started/GUID-index.html | Alternative: supervisor-based |
+| Antrea CNI | https://antrea.io/docs/ | Default CNI for TKG |
+| MetalLB | https://metallb.universe.tf/configuration/ | On-prem LoadBalancer |
+| Harbor Registry | https://goharbor.io/docs/ | On-prem OCI registry |
+| Pulumi vSphere Provider | https://www.pulumi.com/registry/packages/vsphere/ | Pulumi IaC for vSphere |
+| Pulumi Kubernetes Provider | https://www.pulumi.com/registry/packages/kubernetes/ | Pulumi K8s resources |
+| CIS Kubernetes Benchmark | https://www.cisecurity.org/benchmark/kubernetes | Security baseline (kube-bench) |
+| kube-bench | https://github.com/aquasecurity/kube-bench | CIS benchmark scanner |
+| Tanzu Mission Control | https://docs.vmware.com/en/VMware-Tanzu-Mission-Control/ | Cluster lifecycle management |
+
+## Future: AKS (Provider Swap)
+
+| Resource | URL | Notes |
+|----------|-----|-------|
+| AKS Best Practices | https://learn.microsoft.com/en-us/azure/aks/best-practices | AKS cluster design |
+| Pulumi Azure Native | https://www.pulumi.com/registry/packages/azure-native/ | AKS stack IaC docs |
+| AKS Workload Identity | https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview | AKS-specific identity |
 
 ## Databases & Storage
 
@@ -20,6 +34,8 @@
 | PgBouncer Config | https://www.pgbouncer.org/config.html | Connection pooler |
 | Redis Cluster Tutorial | https://redis.io/docs/management/scaling/ | Cluster mode setup |
 | Strimzi Kafka | https://strimzi.io/documentation/ | Kafka on Kubernetes |
+| MinIO Operator | https://min.io/docs/minio/kubernetes/upstream/ | On-prem S3 storage operator |
+| MinIO CNPG Backup | https://cloudnative-pg.io/documentation/current/backup_recovery/ | CNPG backup to S3/MinIO |
 
 ## Security & Secrets
 
@@ -39,7 +55,7 @@
 | Keycloak Docs | https://www.keycloak.org/documentation | Identity provider |
 | Keycloak Helm Chart | https://www.keycloak.org/server/kubernetes | Official Helm deployment |
 | OpenFGA | https://openfga.dev/docs/ | Fine-grained authorization |
-| OpenFGA AKS Guide | https://openfga.dev/docs/getting-started/setup-openfga | Setup guide |
+| OpenFGA Kubernetes Guide | https://openfga.dev/docs/getting-started/setup-openfga | Setup guide |
 
 ## GitOps & Delivery
 

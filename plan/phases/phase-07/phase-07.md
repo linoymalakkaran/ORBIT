@@ -142,7 +142,7 @@ applies_to: [dotnet-9, dotnet-8]
 | `dotnet-efcore-migrations` | EF Core + DbUp Migration Pattern | High |
 | `playwright-e2e-baseline` | AD Ports Playwright E2E Framework | High |
 | `postman-newman-adports-baseline` | Postman/Newman Integration Test Baseline | High |
-| `docker-helm-aks-baseline` | Docker + Helm Chart + AKS Deployment | High |
+| `docker-helm-k8s-baseline` | Docker + Helm Chart + Kubernetes (Tanzu/AKS) Deployment | High |
 | `gitlab-ci-secure-pipeline` | GitLab CI Pipeline with SAST/SCA | High |
 | `azure-devops-secure-pipeline` | Azure DevOps Pipeline with SAST/SCA | High |
 | `rabbitmq-masstransit-pattern` | RabbitMQ + MassTransit Integration | Medium |
@@ -246,7 +246,7 @@ async def list_skills(tags: list[str] | None = None, stack: str | None = None) -
 - [ ] Author remaining 13 skills (see priority list).
 - [ ] Author remaining 7 specs and 9 instructions.
 - [ ] Implement AD Ports Standards MCP server (Python + FastAPI + MCP SDK).
-- [ ] Deploy MCP server to AKS.
+- [ ] Deploy MCP server to TKG cluster.
 - [ ] Test: `@adports-standards get_skill dotnet-cqrs-scaffold` from Cursor returns content.
 
 ### Week 3: Admin UI + Quality + Cadence

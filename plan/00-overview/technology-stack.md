@@ -22,7 +22,7 @@
 | **Immutable Event Store** | EventStoreDB | 24.x | Pipeline Ledger backbone | **Integrate** | Core Squad |
 | **Relational DB** | PostgreSQL | 16.x | Projects, users, registry, ledger index, Portal data | **Integrate** | Infra Squad |
 | **Hot Cache** | Redis Cluster | 7.2.x | Shared project context, session state | **Integrate** | Infra Squad |
-| **Object Store** | Azure Blob Storage | — | Artifact cold storage, immutable bucket | **Integrate** | Infra Squad |
+| **Object Store** | MinIO | RELEASE.2024-x | On-prem S3-compatible artifact store; abstracted behind S3 interface for future AKS/Azure Blob swap | **Integrate** | Infra Squad |
 | **Identity** | Keycloak | 25.x | Portal identity + managed project realms | **Integrate** | Infra Squad |
 | **Authorization** | OpenFGA | 1.x | Fine-grained Portal permissions | **Integrate** | Core Squad |
 | **Secrets** | HashiCorp Vault | 1.17.x | Credentials for all target systems | **Integrate** | Infra Squad |
@@ -33,7 +33,8 @@
 | **SAST** | Checkmarx One + Semgrep | Latest | PR & pipeline static analysis | **Integrate** | QA Squad |
 | **SCA** | Snyk + Trivy | Latest | Dependency & container scanning | **Integrate** | QA Squad |
 | **Code Quality** | SonarQube | 10.x | Quality gate enforcement | **Integrate** | QA Squad |
-| **Container Platform** | AKS (Azure Kubernetes Service) | 1.30.x | Portal runtime + all generated projects | **Integrate** | Infra Squad |
+| **Container Platform** | VMware Tanzu Kubernetes Grid (TKG) | 2.x (on vSphere 8) | **Primary**: on-premise Portal runtime + all generated projects. **Future**: AKS (Azure) supported via provider-abstracted Pulumi stacks | **Integrate** | Infra Squad |
+| **Container Registry** | Harbor | 2.x | On-prem OCI registry (Tanzu-native); ACR used when targeting AKS | **Integrate** | Infra Squad |
 | **GitOps** | ArgoCD | 2.12.x | Continuous delivery | **Integrate** | Infra Squad |
 | **IaC** | Pulumi + Crossplane | Pulumi 3.x | Infrastructure management | **Integrate** | Delivery Agents Squad |
 | **E2E Testing** | Playwright | 1.47.x | QA automation | **Integrate** | QA Squad |
@@ -60,7 +61,7 @@ These are the AD Ports-specific components that create defensible value:
 | **Keycloak MCP Server** | Tools: list-realms, create-client, add-role, configure-group | 08 |
 | **Standards MCP Server** | Tools: fetch-coding-standard, list-approved-libraries, get-naming-conventions | 08 |
 | **GitLab/Azure DevOps MCP** | Tools: create-project, protect-branch, run-pipeline, read-logs | 09 |
-| **AKS MCP Server** | Tools: list-namespaces, apply-helm, read-pod-logs | 09 |
+| **Kubernetes MCP Server** | Tools: list-namespaces, apply-helm, read-pod-logs (Tanzu-first; works on any K8s including AKS) | 09 |
 | **Orchestrator State Machine** | LangGraph workflow: intent→standards→proposal→review→delegate→consolidate | 10 |
 | **Orchestrator Logic** | Intent extraction, standards retrieval, component decomposition | 10 |
 | **PR Review Rubric** | Scoring model calibrated to AD Ports C# and Angular standards | 21 |
@@ -95,9 +96,28 @@ These are the AD Ports-specific components that create defensible value:
 | Premium | Anthropic Claude Sonnet 4.x | Intent extraction, architecture reasoning, PR review narrative | High, bounded |
 | Standard | Azure OpenAI GPT-4o | Code generation, spec synthesis, story generation | Medium |
 | Economy | DeepSeek-V3 / Llama 3.3 (self-hosted) | Routine generation, boilerplate, documentation | Low / near-zero |
-| Sovereign | Self-hosted Llama (on-premises AKS) | Classified projects, ARCCLA workloads | Phase 4 |
+| Sovereign | Self-hosted Llama (TKG GPU nodes, on-premise vSphere) | Classified projects, ARCCLA workloads | Phase 25 |
 
 LiteLLM gateway routes by declared task tier, with fallback chains per provider outage.
+
+---
+
+## Multi-Cloud / Multi-Platform Strategy
+
+The platform is designed to run on-premise (Tanzu) first but remain portable to AKS.
+
+| Concern | On-Prem (Tanzu) — Primary | AKS — Future |
+|---------|--------------------------|-------------|
+| K8s distro | TKG 2.x on vSphere 8 | AKS 1.30.x |
+| IaC provider | `@pulumi/vsphere` + `@pulumi/kubernetes` | `@pulumi/azure-native` + `@pulumi/kubernetes` |
+| Container registry | Harbor 2.x | ACR (Azure Container Registry) |
+| Object storage | MinIO (S3-compatible API) | Azure Blob (via S3-compatible endpoint or native SDK) |
+| Load balancer | MetalLB (or NSX-T if available) | Azure Load Balancer (managed by AKS) |
+| CNI | Antrea (TKG default) | Azure CNI Overlay |
+| DNS | Internal AD/NSX-T DNS | Azure DNS |
+| Secrets backend | HashiCorp Vault (K8s auth) | HashiCorp Vault (K8s auth) — same |
+
+**Portability rule:** All application-layer Helm charts and ArgoCD applications are cloud-agnostic. Only the `src/infrastructure/stacks/` Pulumi stacks differ per target. Storage access is always via the `IObjectStore` S3-compatible interface.
 
 ---
 

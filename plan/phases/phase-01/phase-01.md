@@ -2,13 +2,13 @@
 
 ## Summary
 
-Stand up the foundational infrastructure on which every subsequent component runs. This phase produces a fully operational AKS-based platform with all persistence, messaging, caching, and security primitives in place. Nothing else can be built until this phase is complete.
+Stand up the foundational infrastructure on which every subsequent component runs. This phase produces a fully operational **on-premise VMware Tanzu Kubernetes Grid (TKG)**-based platform with all persistence, messaging, caching, and security primitives in place. The platform is designed for Tanzu-first deployment while keeping the IaC layer provider-abstracted so AKS (Azure) can be added as a second target in the future without re-architecting application layers. Nothing else can be built until this phase is complete.
 
 ---
 
 ## Objectives
 
-1. Provision AKS cluster with correct node pools, NSG rules, and private networking.
+1. Provision TKG workload clusters (dev + prod) on vSphere 8 via Pulumi + `@pulumi/vsphere`.
 2. Deploy and configure PostgreSQL (HA, connection pooling via PgBouncer).
 3. Deploy Redis Cluster for hot-cache and session state.
 4. Deploy Apache Kafka for event streaming (stage transitions, audit events).
@@ -24,10 +24,13 @@ Stand up the foundational infrastructure on which every subsequent component run
 
 ## Prerequisites
 
-- Azure subscription with sufficient quota (see sizing guide below).
-- Azure DevOps or GitLab repository created for `ai-portal` monorepo.
-- Domain name and DNS zones configured in Azure DNS.
-- Agreed AKS node pool sizing with budget sign-off.
+- vSphere 8 environment with Tanzu Kubernetes Grid 2.x management cluster pre-installed by platform/vSphere team.
+- vSphere account with sufficient permissions to provision workload clusters (create VM folders, resource pools, network segments).
+- NSX-T or standard vSphere networking configured; IP pool allocated for MetalLB (or NSX-T LB if available).
+- Internal DNS zone (e.g., `adports-ai.internal`) delegated or configured.
+- Harbor registry instance accessible (or permission to deploy Harbor on the same cluster).
+- Domain name and TLS CA certificates issued by the AD Ports internal PKI.
+- Agreed TKG node sizing with vSphere capacity sign-off.
 - Vault licence or OSS decision confirmed.
 - LangSmith account (for Phase 10 readiness).
 
@@ -45,7 +48,7 @@ Stand up the foundational infrastructure on which every subsequent component run
 
 | # | Deliverable | Acceptance Criterion |
 |---|------------|---------------------|
-| D1 | AKS cluster (`ai-portal-prod` + `ai-portal-dev`) | `kubectl get nodes` shows all nodes Ready |
+| D1 | TKG workload clusters (`ai-portal-prod` + `ai-portal-dev`) | `kubectl get nodes` shows all nodes Ready; `tanzu cluster list` shows clusters Running |
 | D2 | PostgreSQL HA (primary + replica) | Failover test passes; connection string in Vault |
 | D3 | Redis Cluster (3-node) | Cluster info shows all slots assigned |
 | D4 | Apache Kafka (3-broker) | Topic creation and consume/produce verified |
@@ -54,27 +57,61 @@ Stand up the foundational infrastructure on which every subsequent component run
 | D7 | Keycloak (Portal realm seeded) | Admin login works; `ai-portal` realm created |
 | D8 | Kong Ingress + cert-manager | TLS wildcard cert valid; sample ingress resolves |
 | D9 | ArgoCD with app-of-apps | First Helm app deployed via GitOps |
-| D10 | Observability stack | Grafana dashboard shows AKS metrics; Loki has logs |
-| D11 | Pulumi stack for all above | `pulumi up` from clean state recreates entire cluster |
+| D10 | Observability stack | Grafana dashboard shows cluster metrics; Loki has logs |
+| D11 | Pulumi stack for all above | `pulumi up` from clean state recreates entire cluster configuration (provider-abstracted; AKS stack reuses same K8s manifests) |
 | D12 | Runbook for each service | Day-2 operations documented |
 
 ---
 
 ## Technical Implementation
 
-### AKS Cluster Architecture
+### TKG Cluster Architecture
 
 ```
-ai-portal-dev  (single region, eastus, dev/test workloads)
-├── System node pool: 3× Standard_D4s_v5 (4 vCPU, 16 GB)
-├── App node pool:    3× Standard_D8s_v5 (8 vCPU, 32 GB)
-└── GPU pool:         0 (reserved for Phase 4 self-hosted LLM)
+ai-portal-dev  (on-prem vSphere 8, dev/test workloads)
+├── Control plane: 1× 4 vCPU / 16 GB  (TKG control-plane node)
+├── System workers: 3× 4 vCPU / 16 GB  (system services)
+└── App workers:    3× 8 vCPU / 32 GB  (portal + agents)
 
-ai-portal-prod (single region, eastus, production Portal)
-├── System node pool: 3× Standard_D4s_v5
-├── App node pool:    5× Standard_D8s_v5 (auto-scale 3–10)
-└── Spot pool:        Spot Standard_D8s_v5 (for batch fleet jobs)
+ai-portal-prod (on-prem vSphere 8, production Portal)
+├── Control plane: 3× 4 vCPU / 16 GB  (HA control plane)
+├── System workers: 3× 4 vCPU / 16 GB
+├── App workers:    5× 8 vCPU / 32 GB  (HPA: 3–10)
+└── Batch workers:  2× 8 vCPU / 32 GB  (fleet campaign jobs)
+
+# GPU pool — provisioned at Phase 25
+# ai-portal-prod-gpu: 2× nodes with NVIDIA GPU (vGPU or passthrough)
+# Used for self-hosted Llama 3.3 70B via vLLM
 ```
+
+**Networking:**
+- CNI: Antrea (TKG default) with NetworkPolicy enforcement enabled.
+- LoadBalancer: MetalLB (L2 mode, IP pool pre-allocated from vSphere network segment). NSX-T LB if environment provides it.
+- Ingress: Kong Ingress Controller.
+- TLS: cert-manager with AD Ports internal CA (ClusterIssuer → `adports-internal-ca`).
+
+**IaC Provider Abstraction (multi-cloud readiness):**
+
+```
+src/infrastructure/
+├── stacks/
+│   ├── tanzu/              ← on-prem TKG (Phase 01 primary)
+│   │   ├── cluster.ts      ← @pulumi/vsphere cluster provisioning
+│   │   └── Pulumi.*.yaml
+│   └── aks/                ← future AKS target
+│       ├── cluster.ts      ← @pulumi/azure-native
+│       └── Pulumi.*.yaml
+├── k8s/                    ← shared K8s resources (platform-agnostic)
+│   ├── namespaces.ts
+│   ├── postgres.ts
+│   ├── redis.ts
+│   ├── kafka.ts
+│   └── ...
+└── shared/
+    └── platform.ts         ← IPlatformProvider interface
+```
+
+All Helm charts and ArgoCD `Application` manifests live under `k8s/` and are cluster-agnostic. Only `stacks/tanzu/` and `stacks/aks/` differ per provider.
 
 ### Namespace Layout
 
@@ -96,7 +133,7 @@ ai-portal-observability ← Prometheus, Grafana, Loki, Tempo, OTEL Collector
   - `ai_portal_keycloak` — Keycloak data
   - `ai_portal_context` — Shared project context metadata
 - **Connection pooling:** PgBouncer sidecar, transaction-mode pooling.
-- **Backups:** Daily PITR to Azure Blob; 30-day retention.
+- **Backups:** Daily PITR to MinIO (S3-compatible bucket `ai-portal-pg-backups`); 30-day retention. When AKS is targeted, the backup destination switches to Azure Blob via the same CNPG S3 interface.
 - **TLS:** Enforced; cert from cert-manager.
 
 ### Redis Cluster
@@ -146,7 +183,7 @@ opentelemetry-collector:  # OTEL collector
 ```
 
 Initial dashboards to import:
-- AKS cluster overview
+- TKG cluster overview (node CPU/memory, pod density)
 - Postgres query performance
 - Redis memory and hit rate
 - Kafka consumer lag
@@ -159,9 +196,11 @@ Initial dashboards to import:
 ### Week 1
 
 **Day 1–2:**
-- [ ] Create Azure resource groups, VNets, subnets, NSGs via Pulumi.
-- [ ] Provision AKS dev cluster.
-- [ ] Install cert-manager + wildcard TLS cert.
+- [ ] Verify TKG management cluster is operational (`tanzu management-cluster get`).
+- [ ] Create TKG workload cluster `ai-portal-dev` via Pulumi `stacks/tanzu/cluster.ts`.
+- [ ] Configure `kubectl` context for new workload cluster.
+- [ ] Install MetalLB; configure IP pool from allocated vSphere network range.
+- [ ] Install cert-manager + ClusterIssuer using AD Ports internal CA.
 - [ ] Install Kong Ingress Controller.
 
 **Day 3–4:**
@@ -252,7 +291,8 @@ vault status -address=https://vault.ai-portal-vault.svc.cluster.local
 - [ ] Vault transit encryption on sensitive Postgres columns.
 - [ ] Network policies in place (pods can only communicate with declared neighbours).
 - [ ] No secrets in Kubernetes Secrets — all from Vault via vault-agent-injector.
-- [ ] CIS AKS Benchmark scan passes with no critical findings.
+- [ ] CIS Kubernetes Benchmark scan passes with no critical findings (use `kube-bench`).
+- [ ] Harbor registry accessible; image pull secret configured in all namespaces.
 
 ---
 
@@ -272,11 +312,13 @@ vault status -address=https://vault.ai-portal-vault.svc.cluster.local
 
 | Risk | Mitigation |
 |------|-----------|
-| Azure quota limits hit | Pre-request quota increase before phase starts |
-| CloudNativePG learning curve | Use official CNPG examples; allocate Day 3 for learning |
+| vSphere capacity insufficient for all node pools | Pre-validate resource pool quotas with vSphere team before phase starts |
+| TKG management cluster not pre-installed | Escalate to platform team; phase cannot proceed without a healthy management cluster |
+| MetalLB IP pool conflicts with existing network | Coordinate IP range allocation with network team before day 1 |
+| CloudNativePG learning curve | Use official CNPG examples; allocate Day 3 for ramp-up |
 | Vault seal/unseal complexity | Start with dev mode; harden in week 2 |
 | Keycloak realm import issues | Validate realm JSON schema against spec before import |
-| Networking complexity (private AKS) | Use reference architecture from Azure official docs |
+| Harbor image mirroring setup | Ensure external base images (nginx, postgres, etc.) are mirrored before workloads need them |
 
 ---
 

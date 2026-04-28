@@ -17,7 +17,7 @@ Implement the full Portal Backend API — all the CQRS handlers, REST endpoints,
 7. Implement Portal admin API (skill library, MCP registry stubs).
 8. Wire all commands/queries to Pipeline Ledger recording.
 9. Implement full REST API with OpenAPI documentation.
-10. Deploy to AKS with health checks, auth middleware, OTEL.
+10. Deploy to TKG (on-prem Tanzu) with health checks, auth middleware, OTEL.
 
 ---
 
@@ -49,7 +49,7 @@ Implement the full Portal Backend API — all the CQRS handlers, REST endpoints,
 | D6 | Shared context API | Read/write context turns; Redis TTL; OpenFGA gating |
 | D7 | Admin API stubs | Skill library, MCP registry (stubs returning 501) |
 | D8 | OpenAPI spec | Swagger UI at `/swagger`; spec exported to `docs/api/` |
-| D9 | Deployed to AKS | `kubectl get pods -n ai-portal-core` shows Running |
+| D9 | Deployed to TKG | `kubectl get pods -n ai-portal-core` shows Running |
 | D10 | CI/CD pipeline | GitLab/Azure DevOps pipeline: build → test → SAST → deploy |
 
 ---
@@ -193,7 +193,7 @@ public class RecordLedgerEventBehaviour<TRequest, TResponse>(ILedgerService ledg
 - [ ] Implement `ListProjectsQuery` + handler (with paging, filters by status/program).
 - [ ] Implement `GetProjectByIdQuery` + handler.
 - [ ] Implement `UpdateProjectCommand` + handler.
-- [ ] Implement `UploadArtifactCommand` + handler (multipart upload → Azure Blob → hash → DB record).
+- [ ] Implement `UploadArtifactCommand` + handler (multipart upload → MinIO S3 bucket → hash → DB record).
 - [ ] Implement `ListArtifactsQuery` + `GetArtifactVersionsQuery`.
 - [ ] Write integration tests for all above (Testcontainers for Postgres).
 
@@ -212,7 +212,7 @@ public class RecordLedgerEventBehaviour<TRequest, TResponse>(ILedgerService ledg
 - [ ] Implement User + Team management endpoints.
 - [ ] Add Swagger/OpenAPI configuration.
 - [ ] Add problem details responses for all errors.
-- [ ] Write GitLab CI pipeline YAML for: build → test → SonarQube → container build → push ACR → deploy to AKS.
+- [ ] Write GitLab CI pipeline YAML for: build → test → SonarQube → container build → push Harbor → deploy to TKG.
 - [ ] Configure Kong ingress for `/api/` path.
 - [ ] Load test: 50 concurrent users, verify p99 < 200ms.
 - [ ] Export OpenAPI spec and publish to Docusaurus stub.
@@ -226,7 +226,7 @@ public class RecordLedgerEventBehaviour<TRequest, TResponse>(ILedgerService ledg
 - SonarQube quality gate passes.
 - Load test: p99 latency < 200ms at 50 concurrent users.
 - Pipeline Ledger records events for every state-changing operation.
-- Deployed to AKS `ai-portal-core` namespace.
+- Deployed to TKG `ai-portal-core` namespace.
 
 ---
 

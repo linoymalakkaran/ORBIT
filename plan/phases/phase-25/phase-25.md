@@ -13,7 +13,7 @@ The final phase delivers three outcomes: (1) **Ecosystem Agents** for the remain
 3. Implement ERP domain agent pack (Oracle integration, PO/GR workflow, approval chains).
 4. Implement JUL domain agent pack (Jebel Ali logistics-specific patterns + SINTECE V2).
 5. Implement PCS domain agent pack (Port Community System, vessel scheduling, berth management).
-6. Implement sovereign AI deployment (Llama 3.3 70B on AKS GPU nodes, AzureML or vLLM).
+6. Implement sovereign AI deployment (Llama 3.3 70B on TKG GPU nodes, vLLM, on-premise vSphere).
 7. Implement intelligent LLM cost routing (sovereign tier for HIGH sensitivity, cloud for standard).
 8. Implement NESA UAE cybersecurity compliance checks (automated audit evidence).
 9. Implement SOC-2 Type II evidence collection automation.
@@ -24,7 +24,7 @@ The final phase delivers three outcomes: (1) **Ecosystem Agents** for the remain
 ## Prerequisites
 
 - Phases 1–24 complete and Gate 3 passed.
-- AKS GPU node pool provisioned (Phase 01 extension).
+- TKG GPU node pool provisioned (Phase 01 extension; vSphere NVIDIA GPU passthrough or vGPU profile).
 - NESA compliance framework documented.
 - AD Ports legal/compliance team signed off on sovereign AI policy.
 
@@ -47,7 +47,7 @@ The final phase delivers three outcomes: (1) **Ecosystem Agents** for the remain
 | D3 | ERP agent pack | Oracle integration scaffold; PO approval workflow; BizTalk replacement option |
 | D4 | JUL agent pack | JUL-specific stencils in draw.io generator; SINTECE V2 integration harness |
 | D5 | PCS agent pack | Vessel scheduling domain model; berth management service scaffold |
-| D6 | Sovereign AI | Llama 3.3 70B running on AKS GPU nodes; vLLM endpoint health checked |
+| D6 | Sovereign AI | Llama 3.3 70B running on TKG GPU nodes (on-prem); vLLM endpoint health checked |
 | D7 | Intelligent routing | HIGH-sensitivity tasks → sovereign; STANDARD → cloud; ECONOMY → DeepSeek |
 | D8 | NESA compliance | 85% of NESA controls have automated evidence collection |
 | D9 | SOC-2 evidence | All required SOC-2 evidence types collected and stored |
@@ -117,21 +117,25 @@ ERP_ORACLE_PATTERNS = [
 
 ## Sovereign AI Deployment
 
-### vLLM on AKS GPU Nodes
+### vLLM on TKG GPU Nodes (On-Premise)
 
 ```yaml
-# pulumi/sovereign-ai.ts — GPU node pool + vLLM deployment
-const gpuNodePool = new azure.containerservice.AgentPool("sovereign-ai-gpu", {
-    resourceGroupName: "adports-aks-rg",
-    resourceName: aksCluster.name,
-    agentPoolName: "gpupool",
-    vmSize: "Standard_NC4as_T4_v3",  // T4 GPU, 4 vCPU, 28 GB RAM
-    count: 2,
-    mode: "User",
-    nodeTaints: ["sku=gpu:NoSchedule"],
-    nodeLabels: { "workload": "sovereign-ai" },
-    osSku: azure.containerservice.OSSku.Ubuntu,
+# src/infrastructure/stacks/tanzu/sovereign-ai.ts — TKG GPU node pool + vLLM deployment
+# Uses Pulumi @pulumi/vsphere to add a GPU-capable node group to the TKG workload cluster.
+# Prerequisites: vSphere NVIDIA GPU passthrough or vGPU profile configured on ESXi hosts.
+const gpuNodeGroup = new vsphere.VirtualMachine("sovereign-ai-gpu-node-01", {
+    resourcePoolId: gpuResourcePool.id,
+    datastoreId: gpuDatastore.id,
+    numCpus: 16,
+    memory: 131072,          // 128 GB RAM for 70B model
+    guestId: "ubuntu64Guest",
+    // NVIDIA GPU passthrough device attached via vSphere PCI passthrough
+    pciDeviceId: config.require("gpuPciDeviceId"),
+    tags: ["sovereign-ai", "gpu", "ai-portal"],
 });
+// After provisioning, label the K8s node via post-provision script:
+// kubectl label node <node-name> workload=sovereign-ai
+// kubectl taint node <node-name> sku=gpu:NoSchedule
 ```
 
 ```yaml
@@ -230,9 +234,9 @@ NESA_CONTROLS = [
     NesaControl(
         id="NESA-CRYPT-001",
         title="Encryption at rest for sensitive data",
-        evidence_source="aks_storage_encryption",
+        evidence_source="k8s_storage_encryption",
         automated=True,
-        evidence_query=lambda: aks_mcp.get_storage_encryption_status()
+        evidence_query=lambda: k8s_mcp.get_storage_encryption_status()
     ),
     NesaControl(
         id="NESA-VM-001",
@@ -291,7 +295,7 @@ async def collect_compliance_evidence() -> NesaComplianceReport:
 
 ### Week 3: Sovereign AI Deployment
 
-- [ ] Provision GPU node pool in AKS (Pulumi, T4 GPU, 2 nodes).
+- [ ] Provision GPU node pool in TKG (Pulumi `stacks/tanzu/`, NVIDIA GPU passthrough or vGPU, 2 nodes).
 - [ ] Deploy vLLM with Llama 3.3 70B (AWQ quantized).
 - [ ] Implement intelligent LLM routing (routing table + budget check).
 - [ ] Test: CLASSIFIED data → routed to sovereign; never sent to cloud LLM.
