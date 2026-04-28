@@ -1,0 +1,23 @@
+{
+  "version": 3,
+  "cli": { "defaultCollection": "@nx/angular" },
+  "defaultProject": "portal",
+  "projects": {
+    "portal": "apps/portal",
+    "portal-e2e": "apps/portal-e2e",
+    "ui-lib": "libs/ui",
+    "auth-lib": "libs/auth",
+    "api-lib": "libs/api",
+    "i18n-lib": "libs/i18n"
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": { "cacheableOperations": ["build", "lint", "test", "e2e"] }
+    }
+  },
+  "targetDefaults": {
+    "build": { "dependsOn": ["^build"] },
+    "test":  { "dependsOn": ["^build"] }
+  }
+}

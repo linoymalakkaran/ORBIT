@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-ui
+  namespace: ai-portal
+  labels:
+    app: portal-ui
+    version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: portal-ui }
+  template:
+    metadata:
+      labels: { app: portal-ui }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: portal-ui
+          image: harbor.ai.adports.ae/orbit/portal-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "256Mi" }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: tmp-cache
+              mountPath: /var/cache/nginx
+            - name: tmp-run
+              mountPath: /var/run
+          livenessProbe:
+            httpGet: { path: /, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: tmp-cache
+          emptyDir: {}
+        - name: tmp-run
+          emptyDir: {}
+      imagePullSecrets:
+        - name: harbor-pull-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portal-ui
+  namespace: ai-portal
+spec:
+  selector: { app: portal-ui }
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: portal-ui
+  namespace: ai-portal
+  annotations:
+    konghq.com/strip-path: "false"
+    cert-manager.io/cluster-issuer: adports-internal-ca
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts: ["portal.ai.adports.ae"]
+      secretName: portal-ui-tls
+  rules:
+    - host: portal.ai.adports.ae
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: portal-ui
+                port: { number: 80 }

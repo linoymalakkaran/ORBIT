@@ -1,0 +1,17 @@
+{
+  "projects": { "ar": "Arabic" },
+  "login": { "ar": "تسجيل الدخول" },
+  "logout": { "ar": "تسجيل الخروج" },
+  "nav": {
+    "projects": { "ar": "المشاريع" },
+    "ledger": { "ar": "السجل" }
+  },
+  "projects": {
+    "title": { "ar": "المشاريع" },
+    "newProject": { "ar": "مشروع جديد" },
+    "name": { "ar": "الاسم" },
+    "program": { "ar": "البرنامج" },
+    "status": { "ar": "الحالة" },
+    "createdAt": { "ar": "تاريخ الإنشاء" }
+  }
+}

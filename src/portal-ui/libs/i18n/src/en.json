@@ -1,0 +1,16 @@
+{
+  "login": "Login",
+  "logout": "Logout",
+  "nav": {
+    "projects": "Projects",
+    "ledger": "Ledger"
+  },
+  "projects": {
+    "title": "Projects",
+    "newProject": "New Project",
+    "name": "Name",
+    "program": "Program",
+    "status": "Status",
+    "createdAt": "Created At"
+  }
+}

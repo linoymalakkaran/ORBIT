@@ -1,0 +1,49 @@
+{
+  "name": "portal",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "orbit",
+  "sourceRoot": "apps/portal/src",
+  "tags": ["scope:app", "type:angular"],
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:application",
+      "options": {
+        "outputPath": "dist/apps/portal",
+        "index": "apps/portal/src/index.html",
+        "browser": "apps/portal/src/main.ts",
+        "tsConfig": "apps/portal/tsconfig.app.json",
+        "assets": ["apps/portal/src/favicon.ico", "apps/portal/src/assets"],
+        "styles": ["apps/portal/src/styles.scss"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [{"type":"initial","maximumWarning":"500kb","maximumError":"1mb"}],
+          "fileReplacements": [
+            {"replace":"apps/portal/src/environments/environment.ts","with":"apps/portal/src/environments/environment.prod.ts"}
+          ],
+          "outputHashing": "all"
+        },
+        "development": { "optimization": false, "extractLicenses": false, "sourceMap": true }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "configurations": {
+        "production": {"buildTarget":"portal:build:production"},
+        "development": {"buildTarget":"portal:build:development"}
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": { "lintFilePatterns": ["apps/portal/**/*.ts"] }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": { "jestConfig": "apps/portal/jest.config.ts" }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+@use 'primeicons/primeicons.css';
+@use 'primeng/resources/themes/lara-dark-blue/theme.css';
+@use 'primeng/resources/primeng.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  @apply bg-surface-50 text-surface-900;
+}
