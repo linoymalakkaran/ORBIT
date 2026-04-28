@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipeline-ledger
+  namespace: ai-portal
+  labels:
+    app: pipeline-ledger
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: pipeline-ledger }
+  template:
+    metadata:
+      labels: { app: pipeline-ledger }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "pipeline-ledger"
+        vault.hashicorp.com/agent-inject-secret-pg: "secret/data/pipeline-ledger/postgres"
+        vault.hashicorp.com/agent-inject-template-pg: |
+          {{- with secret "secret/data/pipeline-ledger/postgres" -}}
+          export LEDGER_PG_DSN="postgresql+asyncpg://{{ .Data.data.username }}:{{ .Data.data.password }}@postgres:5432/orbit_ledger"
+          {{- end }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      serviceAccountName: pipeline-ledger
+      containers:
+        - name: pipeline-ledger
+          image: harbor.ai.adports.ae/orbit/pipeline-ledger:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - "source /vault/secrets/pg && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+          ports:
+            - containerPort: 8000
+          env:
+            - name: LEDGER_ESDB_CONNECTION_STRING
+              value: "esdb://eventstore.ai-portal.svc:2113?tls=false"
+            - name: LEDGER_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka.ai-portal.svc:9092"
+            - name: LEDGER_KEYCLOAK_ISSUER
+              value: "https://auth.ai.adports.ae/realms/ai-portal"
+            - name: LEDGER_OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      imagePullSecrets:
+        - name: harbor-pull-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pipeline-ledger
+  namespace: ai-portal
+spec:
+  selector: { app: pipeline-ledger }
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pipeline-ledger
+  namespace: ai-portal
+  annotations:
+    konghq.com/strip-path: "true"
+    cert-manager.io/cluster-issuer: adports-internal-ca
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts: ["api.ai.adports.ae"]
+      secretName: api-tls
+  rules:
+    - host: api.ai.adports.ae
+      http:
+        paths:
+          - path: /ledger
+            pathType: Prefix
+            backend:
+              service:
+                name: pipeline-ledger
+                port: { number: 80 }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline-ledger
+  namespace: ai-portal
+  annotations:
+    vault.hashicorp.com/role: "pipeline-ledger"
