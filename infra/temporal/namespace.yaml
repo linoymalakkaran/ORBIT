@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: temporal
+  labels:
+    app.kubernetes.io/managed-by: argocd
+---
+## Temporal Namespace for ORBIT workflows
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-namespace-init
+  namespace: temporal
+data:
+  init.sh: |
+    #!/bin/sh
+    set -e
+    temporal operator namespace create orbit \
+      --retention 30d \
+      --description "ORBIT AI Pipeline Workflows" \
+      --address temporal-frontend.temporal.svc:7233

@@ -1,0 +1,14 @@
+## Kafka (Strimzi Operator) Helm values
+## Chart: strimzi/strimzi-kafka-operator
+
+image:
+  repository: harbor.ai.adports.ae/orbit/strimzi-operator
+  tag: "0.41.0"
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi

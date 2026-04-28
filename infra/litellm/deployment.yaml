@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: litellm
+  labels:
+    app.kubernetes.io/managed-by: argocd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-gateway
+  namespace: litellm
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "litellm"
+    vault.hashicorp.com/agent-inject-secret-env: "secret/litellm/env"
+    vault.hashicorp.com/agent-inject-template-env: |
+      {{- with secret "secret/litellm/env" -}}
+      export AZURE_OPENAI_ENDPOINT="{{ .Data.data.azure_openai_endpoint }}"
+      export AZURE_OPENAI_KEY="{{ .Data.data.azure_openai_key }}"
+      export LITELLM_MASTER_KEY="{{ .Data.data.master_key }}"
+      export LITELLM_DB_URL="{{ .Data.data.db_url }}"
+      {{- end -}}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: litellm-gateway
+  template:
+    metadata:
+      labels:
+        app: litellm-gateway
+    spec:
+      serviceAccountName: litellm
+      containers:
+        - name: litellm
+          image: harbor.ai.adports.ae/orbit/litellm:latest
+          command: ["/bin/sh", "-c"]
+          args: ["source /vault/secrets/env && litellm --config /config/litellm-config.yaml"]
+          ports:
+            - containerPort: 4000
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - name: litellm-config
+              mountPath: /config
+      volumes:
+        - name: litellm-config
+          configMap:
+            name: litellm-config
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: litellm
+  namespace: litellm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm-gateway
+  namespace: litellm
+spec:
+  selector:
+    app: litellm-gateway
+  ports:
+    - port: 4000
+      targetPort: 4000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: litellm-gateway
+  namespace: litellm
+  annotations:
+    cert-manager.io/cluster-issuer: adports-internal-ca
+    konghq.com/strip-path: "false"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - litellm.ai.adports.ae
+      secretName: litellm-tls
+  rules:
+    - host: litellm.ai.adports.ae
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: litellm-gateway
+                port:
+                  number: 4000

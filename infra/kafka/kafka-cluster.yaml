@@ -1,0 +1,98 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: orbit-kafka
+  namespace: kafka
+spec:
+  kafka:
+    version: 3.7.0
+    replicas: 3
+    image: harbor.ai.adports.ae/orbit/kafka:3.7.0
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+    config:
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      default.replication.factor: 3
+      min.insync.replicas: 2
+      log.retention.hours: 168
+    storage:
+      type: persistent-claim
+      size: 20Gi
+      class: vsphere-csi
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 500m
+      limits:
+        memory: 4Gi
+        cpu: "2"
+  zookeeper:
+    replicas: 3
+    image: harbor.ai.adports.ae/orbit/zookeeper:3.7.0
+    storage:
+      type: persistent-claim
+      size: 5Gi
+      class: vsphere-csi
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 200m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: orbit-pipeline-events
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: orbit-kafka
+spec:
+  partitions: 6
+  replicas: 3
+  config:
+    retention.ms: 604800000   # 7 days
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: orbit-health-alerts
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: orbit-kafka
+spec:
+  partitions: 3
+  replicas: 3
+  config:
+    retention.ms: 259200000   # 3 days
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: orbit-gitlab-events
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: orbit-kafka
+spec:
+  partitions: 6
+  replicas: 3
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/managed-by: argocd

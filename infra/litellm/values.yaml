@@ -1,0 +1,84 @@
+## LiteLLM Gateway — model routing config
+## Values for harbor.ai.adports.ae/orbit/litellm:latest
+
+image:
+  repository: harbor.ai.adports.ae/orbit/litellm
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 4000
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+
+ingress:
+  enabled: true
+  ingressClassName: kong
+  annotations:
+    cert-manager.io/cluster-issuer: adports-internal-ca
+  hosts:
+    - host: litellm.ai.adports.ae
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: litellm-tls
+      hosts:
+        - litellm.ai.adports.ae
+
+litellm:
+  masterKey:
+    valueFrom:
+      secretKeyRef:
+        name: litellm-secrets
+        key: master_key
+  config: |
+    model_list:
+      - model_name: gpt-4o-mini
+        litellm_params:
+          model: azure/gpt-4o-mini
+          api_base: "${AZURE_OPENAI_ENDPOINT}"
+          api_key: "${AZURE_OPENAI_KEY}"
+          api_version: "2024-02-01"
+      - model_name: gpt-4o
+        litellm_params:
+          model: azure/gpt-4o
+          api_base: "${AZURE_OPENAI_ENDPOINT}"
+          api_key: "${AZURE_OPENAI_KEY}"
+          api_version: "2024-02-01"
+      - model_name: text-embedding-ada-002
+        litellm_params:
+          model: azure/text-embedding-ada-002
+          api_base: "${AZURE_OPENAI_ENDPOINT}"
+          api_key: "${AZURE_OPENAI_KEY}"
+    general_settings:
+      master_key: "${LITELLM_MASTER_KEY}"
+      database_url: "${LITELLM_DB_URL}"
+      store_model_in_db: true
+    router_settings:
+      routing_strategy: least-busy
+      num_retries: 3
+      timeout: 120
+
+vaultAgent:
+  enabled: true
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "litellm"
+    vault.hashicorp.com/agent-inject-secret-env: "secret/litellm/env"
+    vault.hashicorp.com/agent-inject-template-env: |
+      {{- with secret "secret/litellm/env" -}}
+      export AZURE_OPENAI_ENDPOINT="{{ .Data.data.azure_openai_endpoint }}"
+      export AZURE_OPENAI_KEY="{{ .Data.data.azure_openai_key }}"
+      export LITELLM_MASTER_KEY="{{ .Data.data.master_key }}"
+      export LITELLM_DB_URL="{{ .Data.data.db_url }}"
+      {{- end -}}

@@ -1,0 +1,80 @@
+## Temporal.io Helm values
+## Chart: temporalio/temporal (community chart)
+
+server:
+  replicaCount: 1
+  image:
+    repository: harbor.ai.adports.ae/orbit/temporal-server
+    tag: "1.24.2"
+    pullPolicy: IfNotPresent
+
+admintools:
+  image:
+    repository: harbor.ai.adports.ae/orbit/temporal-admin-tools
+    tag: "1.24.2"
+
+web:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor.ai.adports.ae/orbit/temporal-web
+    tag: "2.28.0"
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      cert-manager.io/cluster-issuer: adports-internal-ca
+    hosts:
+      - host: temporal.ai.adports.ae
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: temporal-web-tls
+        hosts:
+          - temporal.ai.adports.ae
+
+cassandra:
+  enabled: false
+
+mysql:
+  enabled: false
+
+postgresql:
+  enabled: true
+  image:
+    repository: harbor.ai.adports.ae/orbit/postgresql
+    tag: "16"
+  auth:
+    existingSecret: temporal-db-secret
+
+elasticsearch:
+  enabled: false
+
+server:
+  config:
+    persistence:
+      default:
+        driver: sql
+        sql:
+          driver: postgres12
+          host: postgresql.temporal.svc
+          port: 5432
+          database: temporal
+          existingSecret: temporal-db-secret
+      visibility:
+        driver: sql
+        sql:
+          driver: postgres12
+          host: postgresql.temporal.svc
+          port: 5432
+          database: temporal_visibility
+          existingSecret: temporal-db-secret
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 2Gi

@@ -1,0 +1,50 @@
+## EventStoreDB Helm values
+## Chart: eventstore/eventstore
+
+image:
+  repository: harbor.ai.adports.ae/orbit/eventstore
+  tag: "23.10.1-bookworm-slim"
+  pullPolicy: IfNotPresent
+
+replicaCount: 3
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClass: vsphere-csi
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 4Gi
+
+eventStoreConfig:
+  EVENTSTORE_CLUSTER_SIZE: "3"
+  EVENTSTORE_RUN_PROJECTIONS: "All"
+  EVENTSTORE_START_STANDARD_PROJECTIONS: "true"
+  EVENTSTORE_ENABLE_EXTERNAL_TCP: "false"
+  EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP: "true"
+  EVENTSTORE_INSECURE: "false"
+
+service:
+  type: ClusterIP
+  httpPort: 2113
+  tcpPort: 1113
+
+ingress:
+  enabled: true
+  className: kong
+  annotations:
+    cert-manager.io/cluster-issuer: adports-internal-ca
+  hosts:
+    - host: esdb.ai.adports.ae
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: esdb-tls
+      hosts:
+        - esdb.ai.adports.ae
