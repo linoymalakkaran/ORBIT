@@ -38,5 +38,10 @@ class Settings(BaseSettings):
     otel_exporter_otlp_endpoint: str = "http://otel-collector:4317"
     otel_service_name: str = "orchestrator"
 
+    # G27: Intelligent LLM routing — per-project defaults (overridable per request)
+    data_classification: str = "internal"   # public | internal | confidential | restricted
+    task_sensitivity: str = "internal"      # public | internal | confidential | restricted
+    sovereign_model: str = "llama3-70b-sovereign"
+
 
 settings = Settings()

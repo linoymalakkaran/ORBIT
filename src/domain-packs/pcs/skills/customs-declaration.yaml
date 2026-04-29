@@ -1,0 +1,61 @@
+id: pcs-customs-declaration
+name: Customs Declaration Submission
+domain: pcs
+version: "1.0.0"
+description: |
+  Single-window customs declaration submission to UAE Federal Customs Authority
+  (FCA) via the Port Community System. Supports import, export, and transit
+  declarations with HS code validation and duty calculation.
+tags: [pcs, customs, declaration, uae-fca, hs-code, single-window]
+compliance: [WCO-SAFE, UAE-Customs, UAE-FTA]
+data_classification: internal
+
+inputs:
+  - name: declaration_type
+    type: string
+    enum: [IMPORT, EXPORT, TRANSIT, RE_EXPORT]
+    required: true
+  - name: declarant_id
+    type: string
+    required: true
+  - name: consignee_id
+    type: string
+    required: true
+  - name: commodity_lines
+    type: array
+    items:
+      type: object
+      properties:
+        hs_code: {type: string, description: "6-digit HS tariff code"}
+        description: {type: string}
+        quantity: {type: number}
+        unit: {type: string}
+        gross_weight_kg: {type: number}
+        cif_value_aed: {type: number}
+    required: true
+  - name: vessel_imo_number
+    type: string
+  - name: container_numbers
+    type: array
+    items:
+      type: string
+
+outputs:
+  - name: declaration_number
+    type: string
+  - name: status
+    type: string
+    enum: [SUBMITTED, UNDER_REVIEW, HOLD, RELEASED, REJECTED]
+  - name: duty_amount_aed
+    type: number
+  - name: vat_amount_aed
+    type: number
+  - name: release_timestamp
+    type: string
+    format: date-time
+
+generated_artefacts:
+  - type: csharp_service
+    template: CustomsDeclarationService
+  - type: sql_migration
+    template: pcs_declarations

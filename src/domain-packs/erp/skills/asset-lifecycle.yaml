@@ -1,0 +1,47 @@
+id: erp-asset-lifecycle
+name: Asset Lifecycle Management
+domain: erp
+version: "1.0.0"
+description: |
+  Tracks port physical assets from procurement to disposal. Manages
+  depreciation schedules (straight-line and diminishing balance),
+  maintenance cycles, and IFRS 16 right-of-use asset classification.
+tags: [erp, asset-management, ifrs-16, depreciation, maintenance]
+compliance: [IFRS-16, ISO-55001]
+data_classification: internal
+
+inputs:
+  - name: asset_tag
+    type: string
+    required: true
+  - name: asset_category
+    type: string
+    enum: [HEAVY_EQUIPMENT, IT_EQUIPMENT, VESSEL, REAL_ESTATE, VEHICLE, OTHER]
+    required: true
+  - name: acquisition_cost_aed
+    type: number
+    required: true
+  - name: useful_life_years
+    type: integer
+    required: true
+  - name: depreciation_method
+    type: string
+    enum: [STRAIGHT_LINE, DIMINISHING_BALANCE]
+    default: STRAIGHT_LINE
+
+outputs:
+  - name: asset_id
+    type: string
+  - name: annual_depreciation_aed
+    type: number
+  - name: net_book_value_aed
+    type: number
+  - name: next_maintenance_date
+    type: string
+    format: date
+
+generated_artefacts:
+  - type: csharp_service
+    template: AssetLifecycleService
+  - type: sql_migration
+    template: erp_assets

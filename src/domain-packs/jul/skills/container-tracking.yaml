@@ -1,0 +1,45 @@
+id: jul-container-tracking
+name: Container Lifecycle Tracking
+domain: jul
+version: "1.0.0"
+description: |
+  Real-time container tracking from arrival, yard placement, customs
+  inspection, and gate-out. Generates ISO 6346 container event messages
+  (EDI COPINO/COPARN) for shipping line notifications.
+tags: [port, container, tracking, edi, iso-6346]
+compliance: [WCO-SAFE, UAE-Customs]
+data_classification: internal
+
+inputs:
+  - name: container_number
+    type: string
+    description: ISO 6346 container number e.g. MRKU1234567
+    required: true
+  - name: event_type
+    type: string
+    enum: [DISCHARGE, YARD_IN, CUSTOMS_HOLD, CUSTOMS_RELEASED, GATE_OUT, GATE_IN, LOAD]
+    required: true
+  - name: event_timestamp
+    type: string
+    format: date-time
+    required: true
+  - name: vessel_imo_number
+    type: string
+  - name: yard_location
+    type: string
+    description: Yard block + row + tier e.g. A04.12.3
+
+outputs:
+  - name: event_id
+    type: string
+  - name: current_status
+    type: string
+  - name: edi_message
+    type: string
+    description: Generated COPINO/COPARN EDI 3.x message
+
+generated_artefacts:
+  - type: csharp_service
+    template: ContainerTrackingService
+  - type: sql_migration
+    template: jul_container_events

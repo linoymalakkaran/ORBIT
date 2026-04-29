@@ -1,0 +1,40 @@
+id: crm-customer-360
+name: Customer 360 Profile
+domain: crm-cms
+version: "1.0.0"
+description: |
+  Aggregates customer data from Salesforce, SAP, and port billing systems
+  into a unified 360-degree profile. Enforces UAE PDPL consent tracking.
+tags: [crm, customer, profile, pdpl]
+compliance: [UAE-PDPL, GDPR]
+data_classification: confidential
+
+inputs:
+  - name: customer_id
+    type: string
+    required: true
+  - name: include_transactions
+    type: boolean
+    default: false
+  - name: consent_reference
+    type: string
+    description: UAE PDPL consent record reference
+    required: true
+
+outputs:
+  - name: profile
+    type: object
+    description: Unified customer profile
+  - name: consent_valid
+    type: boolean
+
+security_controls:
+  - pdpl_consent_required: true
+  - pii_fields_masked: [national_id, passport_number, mobile]
+  - data_residency: UAE
+
+generated_artefacts:
+  - type: csharp_service
+    template: CustomerProfileService
+  - type: openapi_stub
+    path: openapi/customer-360.yaml

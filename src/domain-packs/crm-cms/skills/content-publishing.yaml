@@ -1,0 +1,46 @@
+id: crm-content-publish
+name: Content Publishing Workflow
+domain: crm-cms
+version: "1.0.0"
+description: |
+  Multi-stage content authoring, review, and publishing workflow with
+  Arabic/English bilingual support and UAE NEMA media compliance checks.
+tags: [cms, content, publishing, bilingual, arabic]
+compliance: [UAE-NEMA]
+data_classification: internal
+
+inputs:
+  - name: content_type
+    type: string
+    enum: [news_article, press_release, service_page, notification]
+    required: true
+  - name: title_en
+    type: string
+    required: true
+  - name: title_ar
+    type: string
+    required: true
+  - name: body_en
+    type: string
+    required: true
+  - name: body_ar
+    type: string
+    required: true
+  - name: publish_date
+    type: string
+    format: date-time
+
+outputs:
+  - name: content_id
+    type: string
+  - name: status
+    type: string
+    enum: [DRAFT, IN_REVIEW, APPROVED, PUBLISHED, REJECTED]
+  - name: cms_url
+    type: string
+
+generated_artefacts:
+  - type: angular_component
+    template: ContentEditorComponent
+  - type: csharp_service
+    template: ContentPublishingService

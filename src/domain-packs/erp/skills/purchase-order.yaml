@@ -1,0 +1,54 @@
+id: erp-purchase-order
+name: Purchase Order Management
+domain: erp
+version: "1.0.0"
+description: |
+  End-to-end purchase order lifecycle: creation, multi-level approval,
+  supplier notification, GRN matching, and 3-way invoice matching
+  compliant with UAE FTA e-invoicing (Peppol).
+tags: [erp, procurement, purchase-order, uae-fta, peppol]
+compliance: [UAE-FTA, IFRS-15]
+data_classification: confidential
+
+inputs:
+  - name: requester_id
+    type: string
+    required: true
+  - name: supplier_id
+    type: string
+    required: true
+  - name: line_items
+    type: array
+    items:
+      type: object
+      properties:
+        item_code: {type: string}
+        quantity: {type: number}
+        unit_price_aed: {type: number}
+        vat_rate: {type: number, enum: [0, 5]}
+    required: true
+  - name: delivery_date
+    type: string
+    format: date
+
+outputs:
+  - name: po_number
+    type: string
+  - name: total_aed
+    type: number
+  - name: vat_amount_aed
+    type: number
+  - name: status
+    type: string
+    enum: [DRAFT, PENDING_APPROVAL, APPROVED, SENT, GRN_RECEIVED, INVOICED, CLOSED]
+
+security_controls:
+  - multi_level_approval: true
+  - approval_threshold_aed: 50000
+  - audit_trail: true
+
+generated_artefacts:
+  - type: csharp_service
+    template: PurchaseOrderService
+  - type: sql_migration
+    template: erp_purchase_orders

@@ -19,6 +19,9 @@ class PipelineStartRequest(BaseModel):
     project_id: uuid.UUID
     project_name: str
     requirements: str
+    # G27: intelligent routing axes — defaults match Settings defaults
+    data_classification: str = "internal"   # public | internal | confidential | restricted
+    task_sensitivity: str = "internal"      # public | internal | confidential | restricted
 
 
 async def _temporal_client() -> Client:
@@ -34,7 +37,13 @@ async def start_pipeline(
     workflow_id = f"pipeline-{body.project_id}"
     handle = await client.start_workflow(
         OrbitPipelineWorkflow.run,
-        args=[str(body.project_id), body.project_name, body.requirements],
+        args=[
+            str(body.project_id),
+            body.project_name,
+            body.requirements,
+            body.data_classification,
+            body.task_sensitivity,
+        ],
         id=workflow_id,
         task_queue=settings.temporal_task_queue,
     )

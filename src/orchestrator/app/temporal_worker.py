@@ -43,7 +43,14 @@ async def emit_ledger_event(project_id: str, event_type: str, stage: int) -> boo
 @workflow.defn
 class OrbitPipelineWorkflow:
     @workflow.run
-    async def run(self, project_id: str, project_name: str, requirements: str) -> dict:
+    async def run(
+        self,
+        project_id: str,
+        project_name: str,
+        requirements: str,
+        data_classification: str = "internal",
+        task_sensitivity: str = "internal",
+    ) -> dict:
         initial_state = {
             "project_id": project_id,
             "project_name": project_name,
@@ -53,6 +60,9 @@ class OrbitPipelineWorkflow:
             "artifacts": [],
             "errors": [],
             "completed": False,
+            # G27: pass routing axes into the LangGraph state
+            "data_classification": data_classification,
+            "task_sensitivity": task_sensitivity,
         }
 
         result = await workflow.execute_activity(

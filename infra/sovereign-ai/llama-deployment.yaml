@@ -16,7 +16,7 @@ metadata:
     pod-security.kubernetes.io/enforce: restricted
 
 ---
-# Llama 3.3 70B inference server (via Ollama)
+# Llama 3.3 70B inference server (via vLLM — replaces Ollama per G26)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,6 +25,7 @@ metadata:
   labels:
     app: llama-inference
     orbit.adports.ae/phase: "25"
+    orbit.adports.ae/inference-engine: vllm
 spec:
   replicas: 1
   strategy:
@@ -50,19 +51,32 @@ spec:
       nodeSelector:
         orbit.adports.ae/gpu: "true"
       containers:
-        - name: ollama
-          image: harbor.ai.adports.ae/orbit/ollama:0.4.0
-          command: ["ollama", "serve"]
+        # G26: vLLM replaces Ollama — OpenAI-compatible API on port 8000
+        - name: vllm
+          image: harbor.ai.adports.ae/orbit/vllm-openai:v0.5.5
+          command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
+          args:
+            - "--model"
+            - "/models/llama3.3-70b"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8000"
+            - "--tensor-parallel-size"
+            - "1"
+            - "--max-model-len"
+            - "32768"
+            - "--served-model-name"
+            - "llama3-70b-sovereign"
+            - "--trust-remote-code"
           ports:
-            - containerPort: 11434
-              name: ollama
+            - containerPort: 8000
+              name: vllm
           env:
-            - name: OLLAMA_HOST
-              value: "0.0.0.0:11434"
-            - name: OLLAMA_MODELS
-              value: "/models"
-            - name: OLLAMA_NUM_GPU
-              value: "1"
+            - name: VLLM_WORKER_MULTIPROC_METHOD
+              value: spawn
+            - name: HF_HUB_OFFLINE
+              value: "1"   # Air-gapped — models pre-loaded on PVC
           volumeMounts:
             - name: model-storage
               mountPath: /models
@@ -77,34 +91,35 @@ spec:
               nvidia.com/gpu: "1"
           readinessProbe:
             httpGet:
-              path: /
-              port: 11434
+              path: /health
+              port: 8000
             initialDelaySeconds: 120     # Model loading takes time
             periodSeconds: 30
             failureThreshold: 10
           livenessProbe:
             httpGet:
-              path: /
-              port: 11434
+              path: /health
+              port: 8000
             initialDelaySeconds: 180
             periodSeconds: 60
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
       initContainers:
-        - name: pull-model
-          image: harbor.ai.adports.ae/orbit/ollama:0.4.0
-          command: ["ollama", "pull", "llama3.3:70b"]
-          env:
-            - name: OLLAMA_HOST
-              value: "0.0.0.0:11434"
+        - name: verify-model
+          image: harbor.ai.adports.ae/orbit/alpine:3.19
+          command: ["sh", "-c", "test -d /models/llama3.3-70b && echo 'Model found' || (echo 'ERROR: model not found at /models/llama3.3-70b' && exit 1)"]
           volumeMounts:
             - name: model-storage
               mountPath: /models
           resources:
             requests:
-              cpu: "2000m"
-              memory: "4Gi"
-              nvidia.com/gpu: "1"
+              cpu: "100m"
+              memory: "64Mi"
             limits:
-              nvidia.com/gpu: "1"
+              cpu: "200m"
+              memory: "128Mi"
       volumes:
         - name: model-storage
           persistentVolumeClaim:
@@ -143,9 +158,9 @@ spec:
   selector:
     app: llama-inference
   ports:
-    - port: 11434
-      targetPort: 11434
-      name: ollama
+    - port: 8000
+      targetPort: 8000
+      name: vllm     # G26: was 11434/ollama
   type: ClusterIP
 
 ---
@@ -164,8 +179,10 @@ data:
     model_list:
       - model_name: llama3-70b-sovereign
         litellm_params:
-          model: ollama/llama3.3:70b
-          api_base: http://llama-inference.sovereign-ai.svc:11434
+          # G26: vLLM exposes OpenAI-compatible API — use openai/ provider prefix
+          model: openai/llama3-70b-sovereign
+          api_base: http://llama-inference.sovereign-ai.svc:8000/v1
+          api_key: not-required   # vLLM does not require an API key by default
           timeout: 300
           stream_timeout: 600
 
@@ -196,6 +213,6 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: ai-portal
       ports:
-        - port: 11434
+        - port: 8000    # G26: vLLM port (was 11434 for Ollama)
   policyTypes:
     - Ingress

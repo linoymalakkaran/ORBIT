@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erp-domain-pack
+  namespace: ai-portal
+  labels:
+    app: erp-domain-pack
+    domain: erp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: erp-domain-pack
+  template:
+    metadata:
+      labels:
+        app: erp-domain-pack
+        domain: erp
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "erp-domain-pack"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/data/erp/config"
+    spec:
+      serviceAccountName: erp-domain-pack
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: erp-domain-pack
+          image: harbor.ai.adports.ae/orbit/erp-domain-pack:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: DOMAIN_NAME
+              value: erp
+            - name: DATA_CLASSIFICATION
+              value: confidential
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: erp-domain-pack
+  namespace: ai-portal
+spec:
+  selector:
+    app: erp-domain-pack
+  ports:
+    - port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: erp-domain-pack
+  namespace: ai-portal

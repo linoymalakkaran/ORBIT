@@ -23,6 +23,7 @@ import uuid
 from langgraph.graph import StateGraph, END
 
 from app.llm import chat
+from app.llm_router import route_for_stage
 from app.mcp_client import invoke_mcp_tool
 
 
@@ -37,15 +38,26 @@ class PipelineState(TypedDict):
     artifacts: Annotated[list[dict], operator.add]
     errors: Annotated[list[str], operator.add]
     completed: bool
+    # G27: routing axes — set per project at pipeline start
+    data_classification: str   # public | internal | confidential | restricted
+    task_sensitivity: str      # public | internal | confidential | restricted
 
 
 # ── Stage nodes ───────────────────────────────────────────────────────────────
 
 async def requirements_analysis(state: PipelineState) -> dict:
-    result = await chat([
-        {"role": "system", "content": "You are an expert BA. Analyse requirements and output structured user stories."},
-        {"role": "user", "content": f"Project: {state['project_name']}\n\n{state['requirements']}"},
-    ])
+    model = route_for_stage(
+        "requirements_analysis",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "You are an expert BA. Analyse requirements and output structured user stories."},
+            {"role": "user", "content": f"Project: {state['project_name']}\n\n{state['requirements']}"},
+        ],
+        model=model,
+    )
     return {
         "stage": 2,
         "messages": [{"role": "assistant", "stage": 1, "content": result}],
@@ -55,10 +67,18 @@ async def requirements_analysis(state: PipelineState) -> dict:
 
 async def architecture_design(state: PipelineState) -> dict:
     prior = _last_artifact(state, "requirements_analysis")
-    result = await chat([
-        {"role": "system", "content": "You are a senior software architect. Design a microservices architecture."},
-        {"role": "user", "content": f"User stories:\n{prior}"},
-    ])
+    model = route_for_stage(
+        "architecture_design",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "You are a senior software architect. Design a microservices architecture."},
+            {"role": "user", "content": f"User stories:\n{prior}"},
+        ],
+        model=model,
+    )
     return {
         "stage": 3,
         "messages": [{"role": "assistant", "stage": 2, "content": result}],
@@ -68,10 +88,18 @@ async def architecture_design(state: PipelineState) -> dict:
 
 async def api_design(state: PipelineState) -> dict:
     arch = _last_artifact(state, "architecture_design")
-    result = await chat([
-        {"role": "system", "content": "Generate OpenAPI 3.1 specifications for all identified services."},
-        {"role": "user", "content": arch},
-    ])
+    model = route_for_stage(
+        "api_design",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Generate OpenAPI 3.1 specifications for all identified services."},
+            {"role": "user", "content": arch},
+        ],
+        model=model,
+    )
     return {
         "stage": 4,
         "messages": [{"role": "assistant", "stage": 3, "content": result}],
@@ -81,10 +109,18 @@ async def api_design(state: PipelineState) -> dict:
 
 async def db_schema_design(state: PipelineState) -> dict:
     arch = _last_artifact(state, "architecture_design")
-    result = await chat([
-        {"role": "system", "content": "Design normalised PostgreSQL schemas for all services. Output DDL."},
-        {"role": "user", "content": arch},
-    ])
+    model = route_for_stage(
+        "db_schema_design",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Design normalised PostgreSQL schemas for all services. Output DDL."},
+            {"role": "user", "content": arch},
+        ],
+        model=model,
+    )
     return {
         "stage": 5,
         "messages": [{"role": "assistant", "stage": 4, "content": result}],
@@ -94,10 +130,18 @@ async def db_schema_design(state: PipelineState) -> dict:
 
 async def iac_generation(state: PipelineState) -> dict:
     arch = _last_artifact(state, "architecture_design")
-    result = await chat([
-        {"role": "system", "content": "Generate Pulumi TypeScript IaC for TKG Kubernetes deployment."},
-        {"role": "user", "content": arch},
-    ])
+    model = route_for_stage(
+        "iac_generation",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Generate Pulumi TypeScript IaC for TKG Kubernetes deployment."},
+            {"role": "user", "content": arch},
+        ],
+        model=model,
+    )
     return {
         "stage": 6,
         "messages": [{"role": "assistant", "stage": 5, "content": result}],
@@ -107,10 +151,18 @@ async def iac_generation(state: PipelineState) -> dict:
 
 async def ci_pipeline_generation(state: PipelineState) -> dict:
     arch = _last_artifact(state, "architecture_design")
-    result = await chat([
-        {"role": "system", "content": "Generate a .gitlab-ci.yml pipeline for build, test, and deploy to TKG."},
-        {"role": "user", "content": arch},
-    ])
+    model = route_for_stage(
+        "ci_pipeline_generation",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Generate a .gitlab-ci.yml pipeline for build, test, and deploy to TKG."},
+            {"role": "user", "content": arch},
+        ],
+        model=model,
+    )
     return {
         "stage": 7,
         "messages": [{"role": "assistant", "stage": 6, "content": result}],
@@ -120,10 +172,18 @@ async def ci_pipeline_generation(state: PipelineState) -> dict:
 
 async def code_generation(state: PipelineState) -> dict:
     api = _last_artifact(state, "api_design")
-    result = await chat([
-        {"role": "system", "content": "Generate production-quality .NET 9 service code from the API spec."},
-        {"role": "user", "content": api},
-    ])
+    model = route_for_stage(
+        "code_generation",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Generate production-quality .NET 9 service code from the API spec."},
+            {"role": "user", "content": api},
+        ],
+        model=model,
+    )
     return {
         "stage": 8,
         "messages": [{"role": "assistant", "stage": 7, "content": result}],
@@ -133,10 +193,18 @@ async def code_generation(state: PipelineState) -> dict:
 
 async def test_generation(state: PipelineState) -> dict:
     code = _last_artifact(state, "source_code")
-    result = await chat([
-        {"role": "system", "content": "Generate comprehensive xUnit tests with >80% coverage target."},
-        {"role": "user", "content": code},
-    ])
+    model = route_for_stage(
+        "test_generation",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Generate comprehensive xUnit tests with >80% coverage target."},
+            {"role": "user", "content": code},
+        ],
+        model=model,
+    )
     return {
         "stage": 9,
         "messages": [{"role": "assistant", "stage": 8, "content": result}],
@@ -146,10 +214,18 @@ async def test_generation(state: PipelineState) -> dict:
 
 async def code_review(state: PipelineState) -> dict:
     code = _last_artifact(state, "source_code")
-    result = await chat([
-        {"role": "system", "content": "You are a senior code reviewer. Review for correctness, security, performance."},
-        {"role": "user", "content": code},
-    ])
+    model = route_for_stage(
+        "code_review",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "You are a senior code reviewer. Review for correctness, security, performance."},
+            {"role": "user", "content": code},
+        ],
+        model=model,
+    )
     return {
         "stage": 10,
         "messages": [{"role": "assistant", "stage": 9, "content": result}],
@@ -159,10 +235,18 @@ async def code_review(state: PipelineState) -> dict:
 
 async def security_scan(state: PipelineState) -> dict:
     code = _last_artifact(state, "source_code")
-    result = await chat([
-        {"role": "system", "content": "Perform SAST analysis. Identify OWASP Top-10 vulnerabilities and propose fixes."},
-        {"role": "user", "content": code},
-    ])
+    model = route_for_stage(
+        "security_scan",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Perform SAST analysis. Identify OWASP Top-10 vulnerabilities and propose fixes."},
+            {"role": "user", "content": code},
+        ],
+        model=model,
+    )
     return {
         "stage": 11,
         "messages": [{"role": "assistant", "stage": 10, "content": result}],
@@ -173,10 +257,18 @@ async def security_scan(state: PipelineState) -> dict:
 async def documentation(state: PipelineState) -> dict:
     arch = _last_artifact(state, "architecture_design")
     api  = _last_artifact(state, "api_design")
-    result = await chat([
-        {"role": "system", "content": "Generate comprehensive technical documentation: README, ADR, runbook."},
-        {"role": "user", "content": f"Architecture:\n{arch}\n\nAPI:\n{api}"},
-    ])
+    model = route_for_stage(
+        "documentation",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Generate comprehensive technical documentation: README, ADR, runbook."},
+            {"role": "user", "content": f"Architecture:\n{arch}\n\nAPI:\n{api}"},
+        ],
+        model=model,
+    )
     return {
         "stage": 12,
         "messages": [{"role": "assistant", "stage": 11, "content": result}],
@@ -185,10 +277,18 @@ async def documentation(state: PipelineState) -> dict:
 
 
 async def pr_review(state: PipelineState) -> dict:
-    result = await chat([
-        {"role": "system", "content": "Summarise the pipeline output and generate a PR description."},
-        {"role": "user", "content": f"Project: {state['project_name']}\nArtifacts: {len(state['artifacts'])} generated."},
-    ])
+    model = route_for_stage(
+        "pr_review",
+        state.get("task_sensitivity", "internal"),
+        state.get("data_classification", "internal"),
+    )
+    result = await chat(
+        [
+            {"role": "system", "content": "Summarise the pipeline output and generate a PR description."},
+            {"role": "user", "content": f"Project: {state['project_name']}\nArtifacts: {len(state['artifacts'])} generated."},
+        ],
+        model=model,
+    )
     return {
         "stage": 12,
         "completed": True,

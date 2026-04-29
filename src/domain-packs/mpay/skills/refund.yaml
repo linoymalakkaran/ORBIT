@@ -1,0 +1,44 @@
+id: mpay-refund
+name: Payment Refund
+domain: mpay
+version: "1.0.0"
+description: |
+  Partial and full refund processing with dual-approval workflow for amounts
+  above threshold. Links refund to original payment via idempotency chain.
+tags: [refund, payment, pci-dss, dual-approval]
+compliance: [PCI-DSS-v4.0]
+data_classification: restricted
+
+inputs:
+  - name: original_payment_id
+    type: string
+    required: true
+  - name: refund_amount_fils
+    type: integer
+    description: Must be <= original payment amount
+    required: true
+  - name: reason
+    type: string
+    enum: [MERCHANT_REQUEST, CUSTOMER_DISPUTE, SYSTEM_ERROR, FRAUD]
+    required: true
+  - name: idempotency_key
+    type: string
+    required: true
+
+outputs:
+  - name: refund_id
+    type: string
+  - name: status
+    type: string
+    enum: [PENDING, APPROVED, REJECTED, PROCESSED]
+
+security_controls:
+  - no_pan_in_logs: true
+  - dual_approval_required: true
+  - idempotency_enforced: true
+
+generated_artefacts:
+  - type: csharp_service
+    template: RefundService
+  - type: sql_migration
+    template: mpay_refunds_table

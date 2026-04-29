@@ -1,0 +1,47 @@
+id: pcs-shipping-line-integration
+name: Shipping Line EDI Integration
+domain: pcs
+version: "1.0.0"
+description: |
+  Bi-directional EDI integration with major shipping lines (MSC, Maersk, CMA-CGM)
+  via UN/EDIFACT BAPLIE (bay plan) and COPARN (container pre-advice) messages.
+  Translates to/from JSON for internal ORBIT services.
+tags: [pcs, edi, shipping-line, baplie, coparn, un-edifact]
+compliance: [WCO-SAFE, IMO-FAL]
+data_classification: internal
+
+inputs:
+  - name: message_type
+    type: string
+    enum: [BAPLIE, COPARN, COPINO, MOVINS, IFTMIN]
+    required: true
+  - name: direction
+    type: string
+    enum: [INBOUND, OUTBOUND]
+    required: true
+  - name: raw_edi_message
+    type: string
+    description: Raw UN/EDIFACT message string (for INBOUND)
+  - name: json_payload
+    type: object
+    description: Structured payload (for OUTBOUND — converted to EDI)
+
+outputs:
+  - name: parsed_payload
+    type: object
+    description: Parsed EDI to structured JSON (INBOUND)
+  - name: generated_edi
+    type: string
+    description: Generated UN/EDIFACT message (OUTBOUND)
+  - name: message_reference
+    type: string
+  - name: validation_errors
+    type: array
+    items:
+      type: string
+
+generated_artefacts:
+  - type: csharp_service
+    template: ShippingLineEdiService
+  - type: openapi_stub
+    path: openapi/pcs-edi.yaml

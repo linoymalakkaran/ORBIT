@@ -1,0 +1,46 @@
+id: mpay-reconciliation
+name: Payment Reconciliation
+domain: mpay
+version: "1.0.0"
+description: |
+  End-of-day reconciliation between MPay ledger and acquiring bank settlement
+  files. Detects discrepancies, raises exception reports, and feeds the
+  Pipeline Ledger with an immutable audit trail.
+tags: [reconciliation, settlement, audit, pci-dss]
+compliance: [PCI-DSS-v4.0]
+data_classification: restricted
+
+inputs:
+  - name: settlement_date
+    type: string
+    format: date
+    required: true
+  - name: acquiring_bank
+    type: string
+    enum: [FAB, ADCB, ENBD]
+    required: true
+  - name: settlement_file_path
+    type: string
+    description: Vault-mount path to encrypted settlement CSV
+
+outputs:
+  - name: matched_count
+    type: integer
+  - name: unmatched_count
+    type: integer
+  - name: discrepancy_report
+    type: object
+  - name: ledger_hash
+    type: string
+    description: SHA-256 hash of reconciliation record chained to Pipeline Ledger
+
+security_controls:
+  - encrypted_at_rest: true
+  - vault_access_required: [settlement_file_path]
+  - audit_log_every_run: true
+
+generated_artefacts:
+  - type: csharp_service
+    template: ReconciliationService
+  - type: sql_migration
+    template: mpay_reconciliation_runs

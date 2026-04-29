@@ -1,0 +1,57 @@
+id: jul-vessel-planning
+name: Vessel Berth Planning
+domain: jul
+version: "1.0.0"
+description: |
+  Optimises vessel berth allocation at Jebel Ali port. Incorporates vessel
+  dimensions, draft, cargo type, crane availability, and tidal windows.
+  Integrates with Port MIS for real-time slot management.
+tags: [port, vessel, berth-planning, logistics, imo]
+compliance: [IMO-FAL, WCO-SAFE]
+data_classification: internal
+
+inputs:
+  - name: vessel_imo_number
+    type: string
+    required: true
+  - name: eta
+    type: string
+    format: date-time
+    required: true
+  - name: etd
+    type: string
+    format: date-time
+    required: true
+  - name: gross_tonnage
+    type: number
+    required: true
+  - name: loa_metres
+    type: number
+    description: Length overall in metres
+    required: true
+  - name: max_draft_metres
+    type: number
+    required: true
+  - name: cargo_type
+    type: string
+    enum: [CONTAINER, BULK, RORO, TANKER, GENERAL_CARGO, PASSENGER]
+    required: true
+
+outputs:
+  - name: berth_id
+    type: string
+  - name: berth_name
+    type: string
+  - name: scheduled_arrival
+    type: string
+    format: date-time
+  - name: tugboat_count
+    type: integer
+  - name: pilot_required
+    type: boolean
+
+generated_artefacts:
+  - type: csharp_service
+    template: VesselBerthPlanningService
+  - type: sql_migration
+    template: jul_vessel_calls
