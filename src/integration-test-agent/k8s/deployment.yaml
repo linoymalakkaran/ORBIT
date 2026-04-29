@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-test-agent
+  namespace: ai-portal
+  labels:
+    app: integration-test-agent
+    orbit.adports.ae/component: agent
+    orbit.adports.ae/phase: "17"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: integration-test-agent
+  template:
+    metadata:
+      labels:
+        app: integration-test-agent
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "integration-test-agent"
+        vault.hashicorp.com/agent-inject-secret-litellm: "secret/data/integration-test-agent/litellm"
+        vault.hashicorp.com/agent-inject-template-litellm: |
+          {{- with secret "secret/data/integration-test-agent/litellm" -}}
+          export ITEST_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: integration-test-agent
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: integration-test-agent
+          image: harbor.ai.adports.ae/orbit/integration-test-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ITEST_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: ITEST_DEFAULT_MODEL
+              value: "gpt-4o"
+            - name: ITEST_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "integration-test-agent"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+            limits:
+              cpu: "600m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: integration-test-agent
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: integration-test-agent
+  namespace: ai-portal
+spec:
+  selector:
+    app: integration-test-agent
+  ports:
+    - port: 80
+      targetPort: 8080

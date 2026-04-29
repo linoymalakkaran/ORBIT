@@ -59,6 +59,43 @@ policies:
   mcp-servers: |
     path "secret/data/mcp-servers/*" { capabilities = ["read"] }
 
+  # Phase 11-25 specialist agents
+  architecture-agent: |
+    path "secret/data/architecture-agent/*" { capabilities = ["read"] }
+
+  backend-specialist-agent: |
+    path "secret/data/backend-specialist-agent/*" { capabilities = ["read"] }
+
+  frontend-specialist-agent: |
+    path "secret/data/frontend-specialist-agent/*" { capabilities = ["read"] }
+
+  database-agent: |
+    path "secret/data/database-agent/*" { capabilities = ["read"] }
+
+  devops-agent: |
+    path "secret/data/devops-agent/*" { capabilities = ["read"] }
+
+  qa-agent: |
+    path "secret/data/qa-agent/*" { capabilities = ["read"] }
+
+  integration-test-agent: |
+    path "secret/data/integration-test-agent/*" { capabilities = ["read"] }
+
+  guardrails-engine: |
+    path "secret/data/guardrails-engine/*" { capabilities = ["read"] }
+
+  project-registry: |
+    path "secret/data/project-registry/*" { capabilities = ["read"] }
+
+  service-health-monitor: |
+    path "secret/data/service-health-monitor/*" { capabilities = ["read"] }
+
+  ticket-agent: |
+    path "secret/data/ticket-agent/*" { capabilities = ["read"] }
+
+  llama-inference: |
+    path "secret/data/llama-inference/*" { capabilities = ["read"] }
+
 # ── Kubernetes Auth Roles ────────────────────────────────────────────────────
 # vault write auth/kubernetes/role/<name> \
 #   bound_service_account_names=<sa> \
@@ -127,6 +164,55 @@ k8s_roles:
     service_account: mcp-servers
     namespace: ai-portal
     policy: mcp-servers
+  # Phase 11-25 specialist agents
+  - name: architecture-agent
+    service_account: architecture-agent
+    namespace: ai-portal
+    policy: architecture-agent
+  - name: backend-specialist-agent
+    service_account: backend-specialist-agent
+    namespace: ai-portal
+    policy: backend-specialist-agent
+  - name: frontend-specialist-agent
+    service_account: frontend-specialist-agent
+    namespace: ai-portal
+    policy: frontend-specialist-agent
+  - name: database-agent
+    service_account: database-agent
+    namespace: ai-portal
+    policy: database-agent
+  - name: devops-agent
+    service_account: devops-agent
+    namespace: ai-portal
+    policy: devops-agent
+  - name: qa-agent
+    service_account: qa-agent
+    namespace: ai-portal
+    policy: qa-agent
+  - name: integration-test-agent
+    service_account: integration-test-agent
+    namespace: ai-portal
+    policy: integration-test-agent
+  - name: guardrails-engine
+    service_account: guardrails-engine
+    namespace: ai-portal
+    policy: guardrails-engine
+  - name: project-registry
+    service_account: project-registry
+    namespace: ai-portal
+    policy: project-registry
+  - name: service-health-monitor
+    service_account: service-health-monitor
+    namespace: ai-portal
+    policy: service-health-monitor
+  - name: ticket-agent
+    service_account: ticket-agent
+    namespace: ai-portal
+    policy: ticket-agent
+  - name: llama-inference
+    service_account: llama-inference
+    namespace: sovereign-ai
+    policy: llama-inference
 
 # ── Secret Paths (required to be seeded) ────────────────────────────────────
 # vault kv put secret/portal-api/env db_password=xxx redis_password=xxx kafka_password=xxx keycloak_client_secret=xxx

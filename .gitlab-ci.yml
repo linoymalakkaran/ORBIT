@@ -202,6 +202,118 @@ build:docs-agent:
   rules:
     - changes: ["src/docs-agent/**"]
 
+  variables:
+    SERVICE_NAME: docs-agent
+  rules:
+    - changes: ["src/docs-agent/**"]
+
+# Phase 11-25 specialist agent builds
+build:architecture-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: architecture-agent
+  rules:
+    - changes: ["src/architecture-agent/**"]
+
+build:backend-specialist-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: backend-specialist-agent
+  rules:
+    - changes: ["src/backend-specialist-agent/**"]
+
+build:frontend-specialist-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: frontend-specialist-agent
+  rules:
+    - changes: ["src/frontend-specialist-agent/**"]
+
+build:database-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: database-agent
+  rules:
+    - changes: ["src/database-agent/**"]
+
+build:devops-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: devops-agent
+  rules:
+    - changes: ["src/devops-agent/**"]
+
+build:qa-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: qa-agent
+  rules:
+    - changes: ["src/qa-agent/**"]
+
+build:integration-test-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: integration-test-agent
+  rules:
+    - changes: ["src/integration-test-agent/**"]
+
+build:guardrails-engine:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: guardrails-engine
+  rules:
+    - changes: ["src/guardrails-engine/**"]
+
+build:project-registry:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: project-registry
+  rules:
+    - changes: ["src/project-registry/**"]
+
+build:service-health-monitor:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: service-health-monitor
+  rules:
+    - changes: ["src/service-health-monitor/**"]
+
+build:ticket-agent:
+  extends: .build-service
+  variables:
+    SERVICE_NAME: ticket-agent
+  rules:
+    - changes: ["src/ticket-agent/**"]
+
+# Test jobs for phase 11-25 agents
+test:specialist-agents:
+  stage: test
+  <<: *python-service
+  script:
+    - |
+      FAILED=0
+      for svc in architecture-agent backend-specialist-agent frontend-specialist-agent \
+                 database-agent devops-agent qa-agent integration-test-agent \
+                 guardrails-engine project-registry service-health-monitor ticket-agent; do
+        echo "Testing $svc..."
+        cd "src/$svc" && poetry install --no-interaction && poetry run pytest tests/ -v --tb=short || FAILED=1
+        cd ../..
+      done
+      exit $FAILED
+  rules:
+    - changes:
+        - "src/architecture-agent/**"
+        - "src/backend-specialist-agent/**"
+        - "src/frontend-specialist-agent/**"
+        - "src/database-agent/**"
+        - "src/devops-agent/**"
+        - "src/qa-agent/**"
+        - "src/integration-test-agent/**"
+        - "src/guardrails-engine/**"
+        - "src/project-registry/**"
+        - "src/service-health-monitor/**"
+        - "src/ticket-agent/**"
+
 # Build all MCP servers using ARG-based Dockerfile
 build:mcp-servers:
   stage: build

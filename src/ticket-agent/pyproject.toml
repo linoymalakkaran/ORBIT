@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "ticket-agent"
+version = "1.0.0"
+description = "ORBIT Ticket Implementation Agent — full-stack code generation from JIRA tickets"
+authors = ["AdPorts AI Platform Team"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.0"
+uvicorn = { extras = ["standard"], version = "^0.30.0" }
+httpx = "^0.27.0"
+langgraph = "^0.2.28"
+langchain-core = "^0.3.15"
+litellm = "^1.50.3"
+pydantic = "^2.8.2"
+pydantic-settings = "^2.4.0"
+opentelemetry-sdk = "^1.27.0"
+opentelemetry-exporter-otlp-proto-grpc = "^1.27.0"
+opentelemetry-instrumentation-fastapi = "^0.48b0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.23.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

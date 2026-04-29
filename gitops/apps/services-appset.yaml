@@ -53,6 +53,44 @@ spec:
           - service: docs-agent
             namespace: ai-portal
             path: src/docs-agent/k8s
+          # Phase 11-25 specialist agents
+          - service: architecture-agent
+            namespace: ai-portal
+            path: src/architecture-agent/k8s
+          - service: backend-specialist-agent
+            namespace: ai-portal
+            path: src/backend-specialist-agent/k8s
+          - service: frontend-specialist-agent
+            namespace: ai-portal
+            path: src/frontend-specialist-agent/k8s
+          - service: database-agent
+            namespace: ai-portal
+            path: src/database-agent/k8s
+          - service: devops-agent
+            namespace: ai-portal
+            path: src/devops-agent/k8s
+          - service: qa-agent
+            namespace: ai-portal
+            path: src/qa-agent/k8s
+          - service: integration-test-agent
+            namespace: ai-portal
+            path: src/integration-test-agent/k8s
+          - service: guardrails-engine
+            namespace: ai-portal
+            path: src/guardrails-engine/k8s
+          - service: project-registry
+            namespace: ai-portal
+            path: src/project-registry/k8s
+          - service: service-health-monitor
+            namespace: ai-portal
+            path: src/service-health-monitor/k8s
+          - service: ticket-agent
+            namespace: ai-portal
+            path: src/ticket-agent/k8s
+          - service: sovereign-ai
+            namespace: sovereign-ai
+            path: infra/sovereign-ai
+          # Platform infra
           - service: platform-hpa-pdb
             namespace: ai-portal
             path: infra/k8s

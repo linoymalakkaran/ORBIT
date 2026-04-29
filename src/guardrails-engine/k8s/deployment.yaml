@@ -1,0 +1,231 @@
+# OPA — Open Policy Agent sidecar/service for ORBIT Guardrails
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa
+  namespace: ai-portal
+  labels:
+    app: opa
+    orbit.adports.ae/component: policy-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: opa
+  template:
+    metadata:
+      labels:
+        app: opa
+    spec:
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: opa
+          image: harbor.ai.adports.ae/orbit/opa:0.67.0
+          args:
+            - run
+            - --server
+            - --addr=:8181
+            - --log-level=info
+            - --log-format=json
+            - /policies
+          ports:
+            - containerPort: 8181
+          volumeMounts:
+            - name: policies
+              mountPath: /policies
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8181
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8181
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      volumes:
+        - name: policies
+          configMap:
+            name: opa-policies
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-policies
+  namespace: ai-portal
+data:
+  orbit_rbac.rego: |
+    package orbit.rbac
+
+    default allow = false
+    default reason = "insufficient role"
+
+    allow {
+        input.roles[_] == "orbit-admin"
+    }
+
+    allow {
+        input.roles[_] == "orbit-architect"
+        input.action in {"architecture_design", "approve_proposal", "deploy_to_prod",
+                         "create_repo", "push_code_main"}
+    }
+
+    allow {
+        input.roles[_] == "orbit-developer"
+        input.action in {"generate_code", "generate_tests", "generate_docs",
+                         "run_integration_tests", "view_proposals"}
+    }
+
+    allow {
+        input.roles[_] == "orbit-qa"
+        input.action in {"run_integration_tests", "run_e2e_tests", "view_reports"}
+    }
+
+    allow {
+        input.roles[_] == "orbit-devops"
+        input.action in {"deploy_to_dev", "deploy_to_staging", "view_infrastructure",
+                         "run_security_scan"}
+    }
+
+    allow {
+        input.project_type == "payment"
+        input.roles[_] == "orbit-pci-certified"
+    }
+
+    reason = "user has required role" { allow }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa
+  namespace: ai-portal
+spec:
+  selector:
+    app: opa
+  ports:
+    - port: 8181
+      targetPort: 8181
+---
+# Guardrails Engine deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guardrails-engine
+  namespace: ai-portal
+  labels:
+    app: guardrails-engine
+    orbit.adports.ae/component: agent
+    orbit.adports.ae/phase: "18"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: guardrails-engine
+  template:
+    metadata:
+      labels:
+        app: guardrails-engine
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "guardrails-engine"
+        vault.hashicorp.com/agent-inject-secret-litellm: "secret/data/guardrails-engine/litellm"
+        vault.hashicorp.com/agent-inject-template-litellm: |
+          {{- with secret "secret/data/guardrails-engine/litellm" -}}
+          export GUARDRAILS_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: guardrails-engine
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: guardrails-engine
+          image: harbor.ai.adports.ae/orbit/guardrails-engine:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: GUARDRAILS_OPA_URL
+              value: "http://opa.ai-portal.svc:8181"
+            - name: GUARDRAILS_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: GUARDRAILS_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: GUARDRAILS_BUDGET_DEFAULT_USD
+              value: "10.0"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "guardrails-engine"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+            limits:
+              cpu: "800m"
+              memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: guardrails-engine
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guardrails-engine
+  namespace: ai-portal
+spec:
+  selector:
+    app: guardrails-engine
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: guardrails-engine
+  namespace: ai-portal
+  annotations:
+    konghq.com/strip-path: "false"
+    cert-manager.io/cluster-issuer: adports-internal-ca
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - guardrails.ai.adports.ae
+      secretName: guardrails-tls
+  rules:
+    - host: guardrails.ai.adports.ae
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: guardrails-engine
+                port:
+                  number: 80

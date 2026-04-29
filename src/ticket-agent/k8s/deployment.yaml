@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-agent
+  namespace: ai-portal
+  labels:
+    app: ticket-agent
+    orbit.adports.ae/component: agent
+    orbit.adports.ae/phase: "22"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ticket-agent
+  template:
+    metadata:
+      labels:
+        app: ticket-agent
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "ticket-agent"
+        vault.hashicorp.com/agent-inject-secret-litellm: "secret/data/ticket-agent/litellm"
+        vault.hashicorp.com/agent-inject-template-litellm: |
+          {{- with secret "secret/data/ticket-agent/litellm" -}}
+          export TICKET_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: ticket-agent
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: ticket-agent
+          image: harbor.ai.adports.ae/orbit/ticket-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TICKET_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: TICKET_DEFAULT_MODEL
+              value: "gpt-4o"
+            - name: TICKET_BACKEND_AGENT_URL
+              value: "http://backend-specialist-agent.ai-portal.svc:80"
+            - name: TICKET_FRONTEND_AGENT_URL
+              value: "http://frontend-specialist-agent.ai-portal.svc:80"
+            - name: TICKET_DATABASE_AGENT_URL
+              value: "http://database-agent.ai-portal.svc:80"
+            - name: TICKET_QA_AGENT_URL
+              value: "http://qa-agent.ai-portal.svc:80"
+            - name: TICKET_GITLAB_MCP_URL
+              value: "http://mcp-registry.ai-portal.svc:80"
+            - name: TICKET_JIRA_MCP_URL
+              value: "http://mcp-registry.ai-portal.svc:80"
+            - name: TICKET_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: TICKET_PR_REVIEW_URL
+              value: "http://pr-review-agent.ai-portal.svc:80"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "ticket-agent"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ticket-agent
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticket-agent
+  namespace: ai-portal
+spec:
+  selector:
+    app: ticket-agent
+  ports:
+    - port: 80
+      targetPort: 8080

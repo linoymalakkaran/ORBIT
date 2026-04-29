@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-agent
+  namespace: ai-portal
+  labels:
+    app: devops-agent
+    orbit.adports.ae/component: agent
+    orbit.adports.ae/phase: "15"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-agent
+  template:
+    metadata:
+      labels:
+        app: devops-agent
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "devops-agent"
+        vault.hashicorp.com/agent-inject-secret-litellm: "secret/data/devops-agent/litellm"
+        vault.hashicorp.com/agent-inject-template-litellm: |
+          {{- with secret "secret/data/devops-agent/litellm" -}}
+          export DEVOPS_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: devops-agent
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: devops-agent
+          image: harbor.ai.adports.ae/orbit/devops-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DEVOPS_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: DEVOPS_DEFAULT_MODEL
+              value: "gpt-4o"
+            - name: DEVOPS_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: DEVOPS_HARBOR_REGISTRY
+              value: "harbor.ai.adports.ae/orbit"
+            - name: DEVOPS_ARGOCD_REPO
+              value: "https://github.com/linoymalakkaran/ORBIT.git"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "devops-agent"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+            limits:
+              cpu: "800m"
+              memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devops-agent
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-agent
+  namespace: ai-portal
+spec:
+  selector:
+    app: devops-agent
+  ports:
+    - port: 80
+      targetPort: 8080

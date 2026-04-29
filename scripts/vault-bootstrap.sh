@@ -43,6 +43,10 @@ SERVICES=(
   project-registry-agent health-monitor-agent pr-review-agent
   ba-agent pm-agent vulnerability-radar-agent fleet-upgrade-agent docs-agent
   mcp-servers
+  # Phase 11-25 specialist agents
+  architecture-agent backend-specialist-agent frontend-specialist-agent
+  database-agent devops-agent qa-agent integration-test-agent
+  guardrails-engine project-registry service-health-monitor ticket-agent
 )
 
 for svc in "${SERVICES[@]}"; do
@@ -54,6 +58,10 @@ done
 # LiteLLM lives in its own namespace
 write_policy "litellm" "path \"secret/data/litellm/*\" { capabilities = [\"read\"] }"
 write_k8s_role "litellm" "litellm" "$NAMESPACE_LITELLM" "litellm"
+
+# Sovereign AI in its own namespace
+write_policy "llama-inference" "path \"secret/data/llama-inference/*\" { capabilities = [\"read\"] }"
+write_k8s_role "llama-inference" "llama-inference" "sovereign-ai" "llama-inference"
 
 echo ""
 echo "==> DONE. Vault bootstrap complete."

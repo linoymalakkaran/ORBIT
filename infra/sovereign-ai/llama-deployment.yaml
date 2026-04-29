@@ -1,0 +1,201 @@
+# Sovereign AI — Self-hosted Llama 3.3 70B on GPU nodes
+# Phase 25: Gate 4 Checkpoint — NESA UAE compliance + SOC-2 readiness
+
+# ── GPU Node Pool Taint ───────────────────────────────────────────────────────
+# Apply to vSphere GPU nodes (pre-provisioned with NVIDIA GPU Operator):
+# kubectl taint nodes <gpu-node> nvidia.com/gpu=present:NoSchedule
+
+---
+# Namespace for sovereign AI workloads
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sovereign-ai
+  labels:
+    orbit.adports.ae/tier: sovereign
+    pod-security.kubernetes.io/enforce: restricted
+
+---
+# Llama 3.3 70B inference server (via Ollama)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-inference
+  namespace: sovereign-ai
+  labels:
+    app: llama-inference
+    orbit.adports.ae/phase: "25"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # GPU workloads can only run on one node at a time
+  selector:
+    matchLabels:
+      app: llama-inference
+  template:
+    metadata:
+      labels:
+        app: llama-inference
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "llama-inference"
+    spec:
+      serviceAccountName: llama-inference
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        orbit.adports.ae/gpu: "true"
+      containers:
+        - name: ollama
+          image: harbor.ai.adports.ae/orbit/ollama:0.4.0
+          command: ["ollama", "serve"]
+          ports:
+            - containerPort: 11434
+              name: ollama
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:11434"
+            - name: OLLAMA_MODELS
+              value: "/models"
+            - name: OLLAMA_NUM_GPU
+              value: "1"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+          resources:
+            requests:
+              cpu: "8000m"
+              memory: "80Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16000m"
+              memory: "120Gi"
+              nvidia.com/gpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 120     # Model loading takes time
+            periodSeconds: 30
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 180
+            periodSeconds: 60
+      initContainers:
+        - name: pull-model
+          image: harbor.ai.adports.ae/orbit/ollama:0.4.0
+          command: ["ollama", "pull", "llama3.3:70b"]
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:11434"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+          resources:
+            requests:
+              cpu: "2000m"
+              memory: "4Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              nvidia.com/gpu: "1"
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: llama-models-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llama-models-pvc
+  namespace: sovereign-ai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: vsphere-csi-sc
+  resources:
+    requests:
+      storage: 200Gi      # Llama 70B Q4 ~42GB + headroom
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llama-inference
+  namespace: sovereign-ai
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama-inference
+  namespace: sovereign-ai
+  labels:
+    app: llama-inference
+spec:
+  selector:
+    app: llama-inference
+  ports:
+    - port: 11434
+      targetPort: 11434
+      name: ollama
+  type: ClusterIP
+
+---
+# LiteLLM proxy config to route classified workloads to sovereign Llama
+# Patch the existing litellm ConfigMap to add sovereign model route
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-sovereign-models
+  namespace: litellm
+data:
+  sovereign_models.yaml: |
+    # Sovereign AI model routes for classified workloads
+    # Added by Phase 25
+
+    model_list:
+      - model_name: llama3-70b-sovereign
+        litellm_params:
+          model: ollama/llama3.3:70b
+          api_base: http://llama-inference.sovereign-ai.svc:11434
+          timeout: 300
+          stream_timeout: 600
+
+    router_settings:
+      routing_strategy: least-busy
+
+    # Model access control — only sovereign-ai namespace can use this model
+    # Enforced via guardrails-engine OPA policy
+
+---
+# NetworkPolicy: restrict llama-inference access to sovereign-ai namespace only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: llama-inference-access
+  namespace: sovereign-ai
+spec:
+  podSelector:
+    matchLabels:
+      app: llama-inference
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: litellm
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ai-portal
+      ports:
+        - port: 11434
+  policyTypes:
+    - Ingress

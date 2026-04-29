@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: project-registry
+  namespace: ai-portal
+  labels:
+    app: project-registry
+    orbit.adports.ae/component: platform
+    orbit.adports.ae/phase: "19"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: project-registry
+  template:
+    metadata:
+      labels:
+        app: project-registry
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "project-registry"
+        vault.hashicorp.com/agent-inject-secret-db: "secret/data/project-registry/db"
+        vault.hashicorp.com/agent-inject-template-db: |
+          {{- with secret "secret/data/project-registry/db" -}}
+          export REGISTRY_DB_DSN="postgresql://{{ .Data.data.user }}:{{ .Data.data.password }}@postgresql.ai-portal.svc:5432/orbit"
+          {{- end }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: project-registry
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: project-registry
+          image: harbor.ai.adports.ae/orbit/project-registry:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REGISTRY_KUBERNETES_MCP_URL
+              value: "http://mcp-registry.ai-portal.svc:80"
+            - name: REGISTRY_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "project-registry"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: project-registry
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: project-registry
+  namespace: ai-portal
+spec:
+  selector:
+    app: project-registry
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: project-registry
+  namespace: ai-portal
+  annotations:
+    konghq.com/strip-path: "false"
+    cert-manager.io/cluster-issuer: adports-internal-ca
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - registry.ai.adports.ae
+      secretName: project-registry-tls
+  rules:
+    - host: registry.ai.adports.ae
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: project-registry
+                port:
+                  number: 80

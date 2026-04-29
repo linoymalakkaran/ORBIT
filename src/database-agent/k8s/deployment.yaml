@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-agent
+  namespace: ai-portal
+  labels:
+    app: database-agent
+    orbit.adports.ae/component: agent
+    orbit.adports.ae/phase: "14"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database-agent
+  template:
+    metadata:
+      labels:
+        app: database-agent
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "database-agent"
+        vault.hashicorp.com/agent-inject-secret-litellm: "secret/data/database-agent/litellm"
+        vault.hashicorp.com/agent-inject-template-litellm: |
+          {{- with secret "secret/data/database-agent/litellm" -}}
+          export DBAGENT_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: database-agent
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: database-agent
+          image: harbor.ai.adports.ae/orbit/database-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DBAGENT_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: DBAGENT_DEFAULT_MODEL
+              value: "gpt-4o"
+            - name: DBAGENT_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "database-agent"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+            limits:
+              cpu: "800m"
+              memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: database-agent
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-agent
+  namespace: ai-portal
+spec:
+  selector:
+    app: database-agent
+  ports:
+    - port: 80
+      targetPort: 8080

@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-specialist-agent
+  namespace: ai-portal
+  labels:
+    app: backend-specialist-agent
+    orbit.adports.ae/component: agent
+    orbit.adports.ae/phase: "12"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-specialist-agent
+  template:
+    metadata:
+      labels:
+        app: backend-specialist-agent
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "backend-specialist-agent"
+        vault.hashicorp.com/agent-inject-secret-litellm: "secret/data/backend-specialist-agent/litellm"
+        vault.hashicorp.com/agent-inject-template-litellm: |
+          {{- with secret "secret/data/backend-specialist-agent/litellm" -}}
+          export BACKEND_LITELLM_API_KEY="{{ .Data.data.api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: backend-specialist-agent
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: backend-specialist-agent
+          image: harbor.ai.adports.ae/orbit/backend-specialist-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BACKEND_LITELLM_API_BASE
+              value: "http://litellm-gateway.litellm.svc:4000"
+            - name: BACKEND_DEFAULT_MODEL
+              value: "gpt-4o"
+            - name: BACKEND_LEDGER_URL
+              value: "http://pipeline-ledger.ai-portal.svc:80"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "backend-specialist-agent"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backend-specialist-agent
+  namespace: ai-portal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-specialist-agent
+  namespace: ai-portal
+spec:
+  selector:
+    app: backend-specialist-agent
+  ports:
+    - port: 80
+      targetPort: 8080
