@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbit.adports.ae/schemas/domain-entity.schema.json",
+  "title": "Domain Entity Base",
+  "description": "Base JSON Schema for all generated domain entities in ORBIT. All domain entities must include these fields.",
+  "type": "object",
+  "required": ["id", "createdAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique entity identifier (UUID v4)"
+    },
+    "tenantId": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Business unit / tenant identifier for RLS isolation"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when the entity was created"
+    },
+    "updatedAt": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "UTC timestamp of last update"
+    },
+    "deletedAt": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "UTC timestamp of soft-delete (null if not deleted)"
+    },
+    "createdBy": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Keycloak user ID that created this entity"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optimistic concurrency token (EF Core / ETag)"
+    }
+  },
+  "examples": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "tenantId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "createdAt": "2026-04-29T10:00:00Z",
+      "updatedAt": "2026-04-29T12:00:00Z",
+      "deletedAt": null,
+      "createdBy": "a3bb189e-8bf9-3888-9912-ace4e6543002",
+      "version": 3
+    }
+  ]
+}

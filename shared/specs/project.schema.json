@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbit.adports.ae/schemas/project.schema.json",
+  "title": "Portal Project",
+  "description": "An ORBIT AI Portal project representing a digital product or service development initiative.",
+  "type": "object",
+  "required": ["id", "name", "status", "ownerId", "createdAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique project identifier (UUID v4)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "description": "Human-readable project name"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Draft", "InProgress", "PendingApproval", "Approved", "Archived"],
+      "description": "Project lifecycle state"
+    },
+    "ownerId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Keycloak user ID of the project owner"
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "AD Ports business unit / tenant identifier"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["MPay", "CRM", "CMS", "ERP", "JUL", "PCS", "Internal", "Other"],
+      "description": "Business domain for domain-pack resolution"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "maxLength": 50 },
+      "maxItems": 20
+    },
+    "services": {
+      "type": "array",
+      "items": { "$ref": "service.schema.json" },
+      "description": "Services registered under this project"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

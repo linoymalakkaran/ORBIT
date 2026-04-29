@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbit.adports.ae/schemas/service.schema.json",
+  "title": "Registered Service",
+  "description": "A software service registered in the ORBIT Project Registry.",
+  "type": "object",
+  "required": ["id", "name", "projectId", "framework", "frameworkVersion", "lifecycleStatus", "repoUrl", "createdAt"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+    "projectId": { "type": "string", "format": "uuid" },
+    "framework": {
+      "type": "string",
+      "enum": ["dotnet", "angular", "nodejs", "python", "java", "other"]
+    },
+    "frameworkVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Semantic version of the framework (e.g. '9.0', '20.0.0')"
+    },
+    "lifecycleStatus": {
+      "type": "string",
+      "enum": ["CURRENT", "ALERT", "BLOCK", "EOL"],
+      "description": "Computed by Fleet Upgrade Agent from framework-lifecycle-policy.md"
+    },
+    "repoUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "GitLab repository URL"
+    },
+    "imageRepository": {
+      "type": "string",
+      "pattern": "^harbor\\.ai\\.adports\\.ae/orbit/",
+      "description": "Harbor image path (must use harbor.ai.adports.ae/orbit/ prefix)"
+    },
+    "namespace": {
+      "type": "string",
+      "default": "ai-portal",
+      "description": "Kubernetes namespace where the service is deployed"
+    },
+    "healthEndpoint": {
+      "type": "string",
+      "default": "/health/live"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "IDs of services this service depends on"
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

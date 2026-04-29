@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbit.adports.ae/schemas/ledger-event.schema.json",
+  "title": "Pipeline Ledger Event",
+  "description": "An immutable, SHA-256 chained event record in the ORBIT Pipeline Ledger.",
+  "type": "object",
+  "required": ["id", "streamId", "eventType", "eventVersion", "payload", "sha256Hash", "recordedAt"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "streamId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Aggregate stream ID (e.g. project ID or service ID)"
+    },
+    "eventType": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Dot-separated event type name (e.g. 'project.created', 'artifact.approved')"
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonically increasing version within the stream"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Event-specific payload; structure depends on eventType"
+    },
+    "sha256Hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 hash of the canonical JSON payload"
+    },
+    "prevHash": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 hash of the previous event in this stream (null for first event)"
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Links related events across streams"
+    },
+    "causationId": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "ID of the event that caused this event"
+    },
+    "recordedBy": {
+      "type": "string",
+      "description": "Service or user that recorded this event"
+    }
+  },
+  "additionalProperties": false
+}

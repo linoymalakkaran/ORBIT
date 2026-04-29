@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbit.adports.ae/schemas/architecture-proposal.schema.json",
+  "title": "Architecture Proposal",
+  "description": "An AI-generated architecture proposal artifact produced by the Architecture Agent.",
+  "type": "object",
+  "required": ["id", "projectId", "intent", "components", "status", "createdAt"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "projectId": { "type": "string", "format": "uuid" },
+    "intent": { "type": "string", "description": "Original user intent that triggered this proposal" },
+    "status": {
+      "type": "string",
+      "enum": ["Draft", "PendingReview", "Approved", "Rejected"]
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string", "enum": ["service", "database", "queue", "gateway", "cache", "external"] },
+          "framework": { "type": "string" },
+          "namespace": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "type"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "type": { "type": "string", "enum": ["http", "event", "database", "grpc", "mq"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "openapiStubs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "serviceName": { "type": "string" },
+          "openapiYaml": { "type": "string", "description": "OpenAPI 3.1 YAML as a string" }
+        }
+      }
+    },
+    "drawioComponentXml": {
+      "type": ["string", "null"],
+      "description": "draw.io XML for the component architecture diagram"
+    },
+    "drawioSequenceXml": {
+      "type": ["string", "null"],
+      "description": "draw.io XML for the sequence diagram"
+    },
+    "adrs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "status", "decision"],
+        "properties": {
+          "title": { "type": "string" },
+          "status": { "type": "string", "enum": ["Proposed", "Accepted", "Deprecated", "Superseded"] },
+          "context": { "type": "string" },
+          "decision": { "type": "string" },
+          "consequences": { "type": "string" }
+        }
+      }
+    },
+    "approvedBy": { "type": ["string", "null"], "format": "uuid" },
+    "approvedAt": { "type": ["string", "null"], "format": "date-time" },
+    "createdAt": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

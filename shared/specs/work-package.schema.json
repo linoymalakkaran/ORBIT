@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbit.adports.ae/schemas/work-package.schema.json",
+  "title": "Orchestrator Work Package",
+  "description": "A unit of AI-assisted work dispatched by the ORBIT Orchestrator to specialist agents.",
+  "type": "object",
+  "required": ["id", "projectId", "intent", "status", "createdAt"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "projectId": { "type": "string", "format": "uuid" },
+    "ticketId": {
+      "type": ["string", "null"],
+      "description": "Source Jira or ADO ticket ID that triggered this work package"
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 5000,
+      "description": "Natural language description of what needs to be built or changed"
+    },
+    "domain": {
+      "type": ["string", "null"],
+      "enum": ["MPay", "CRM", "CMS", "ERP", "JUL", "PCS", "Internal", "Other", null]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Pending", "Planning", "InProgress", "AwaitingReview", "Completed", "Failed", "Cancelled"]
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agentType", "status"],
+        "properties": {
+          "agentType": {
+            "type": "string",
+            "enum": ["architecture", "backend", "frontend", "database", "devops", "qa", "integration-test"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Pending", "Running", "Completed", "Failed", "Skipped"]
+          },
+          "artifactId": { "type": ["string", "null"], "format": "uuid" },
+          "startedAt": { "type": ["string", "null"], "format": "date-time" },
+          "completedAt": { "type": ["string", "null"], "format": "date-time" },
+          "errorMessage": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "costTokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total LLM tokens consumed by this work package"
+    },
+    "costUsd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Estimated USD cost of LLM calls"
+    },
+    "modelUsed": {
+      "type": "string",
+      "description": "Primary LLM model used (e.g. gpt-4o, llama3-70b-sovereign)"
+    },
+    "correlationId": { "type": ["string", "null"], "format": "uuid" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "additionalProperties": false
+}
