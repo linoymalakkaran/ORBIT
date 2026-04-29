@@ -284,4 +284,97 @@ async def readiness():
     return {"status": "ok"}
 
 
+# ── G13: Camunda BPMN Generator ──────────────────────────────────────────────
+
+import textwrap as _textwrap
+
+
+class BpmnStep(BaseModel):
+    name: str
+    type: str  # "user_task" | "service_task" | "exclusive_gateway" | "parallel_gateway" | "send_task"
+    assignee: str | None = None
+    form_key: str | None = None
+    description: str = ""
+
+
+class WorkflowGenRequest(BaseModel):
+    project_id: str
+    process_name: str
+    process_id: str = ""   # auto-derived from process_name if empty
+    steps: list[BpmnStep]
+    variables: list[str] = []
+
+
+@app.post("/api/generate/workflow")
+async def generate_workflow(req: WorkflowGenRequest):
+    """
+    Phase 14 – G13: Generates a valid Camunda 8 BPMN 2.0 XML process definition
+    and a deployment curl command for Zeebe.
+    """
+    process_id = req.process_id or req.process_name.lower().replace(" ", "-")
+    steps_text = "\n".join(
+        f"  {i+1}. type={s.type} name={s.name} assignee={s.assignee} form={s.form_key}"
+        for i, s in enumerate(req.steps)
+    )
+    variables_text = ", ".join(req.variables) or "none"
+
+    prompt = _textwrap.dedent(f"""
+        Generate a valid Camunda 8 BPMN 2.0 XML file for this process.
+
+        Process name: {req.process_name}
+        Process ID: {process_id}
+        Process variables: {variables_text}
+
+        Steps (in order):
+        {steps_text}
+
+        Requirements:
+        - Use namespace: xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+        - Add xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" for Camunda 8 extensions
+        - Add xmlns:modeler="http://camunda.org/schema/modeler/1.0"
+        - Include startEvent, endEvent, all steps as correct BPMN element types
+        - For user_task: add zeebe:assignmentDefinition assignee attribute
+        - For service_task: add zeebe:taskDefinition type attribute (use process_id + "_" + step_name)
+        - For exclusive_gateway: add sequenceFlows with conditionExpression
+        - For parallel_gateway: add parallel split + join pair
+        - Add bpmndi:BPMNDiagram section with layout coordinates
+        - Sequence flows connect all elements in order
+        Return ONLY the complete XML starting with <?xml version="1.0" encoding="UTF-8"?>
+    """)
+
+    bpmn_xml = await _llm(prompt)
+
+    # Generate Zeebe deployment command
+    deploy_cmd = (
+        f'curl -X POST http://zeebe.camunda.svc:26500/api/v1/deployments \\\n'
+        f'  -H "Content-Type: multipart/form-data" \\\n'
+        f'  -F "resources=@{process_id}.bpmn;type=application/xml"'
+    )
+
+    # Record in ledger
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(f"{settings.ledger_url}/api/ledger", json={
+                "project_id": req.project_id,
+                "pipeline_run_id": f"workflow-gen-{process_id}",
+                "stage": "workflow_generation",
+                "actor": "database-agent",
+                "status": "success",
+                "metadata": {"process_id": process_id, "steps": len(req.steps)},
+            })
+    except Exception:
+        pass
+
+    return {
+        "project_id": req.project_id,
+        "process_id": process_id,
+        "process_name": req.process_name,
+        "artifacts": {
+            "bpmn_xml": bpmn_xml,
+            "deploy_command": deploy_cmd,
+            "filename": f"{process_id}.bpmn",
+        },
+    }
+
+
 import asyncio

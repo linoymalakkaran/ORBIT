@@ -274,3 +274,100 @@ async def liveness():
 @app.get("/health/ready")
 async def readiness():
     return {"status": "ok"}
+
+
+# ── G16: WireMock Harness Generator ──────────────────────────────────────────
+
+import json as _json
+import textwrap as _textwrap
+
+
+class WireMockRequest(BaseModel):
+    project_id: str
+    service_name: str
+    external_service_name: str
+    openapi_spec: str   # OpenAPI 3.1 YAML/JSON as string
+
+
+@app.post("/api/generate/wiremock")
+async def generate_wiremock(req: WireMockRequest):
+    """
+    Phase 17 – G16: Generates WireMock stub mappings and a docker-compose
+    file for the given external service OpenAPI spec.
+    """
+    prompt = _textwrap.dedent(f"""
+        You are a WireMock expert. Given the following OpenAPI spec for the external service
+        "{req.external_service_name}", generate WireMock stub mappings JSON.
+
+        For EACH endpoint in the spec:
+        - Create one WireMock stub mapping JSON object
+        - Include realistic example response bodies based on the schema
+        - Use HTTP status 200 for GET endpoints, 201 for POST, 204 for DELETE
+        - Add a "scenarioName" for stateful flows if applicable
+
+        OpenAPI spec:
+        {req.openapi_spec[:6000]}
+
+        Return a JSON array of WireMock stub mapping objects.
+        Each object must have: "request" (method, url) and "response" (status, jsonBody or body).
+        Example format:
+        [
+          {{
+            "request": {{"method": "GET", "url": "/api/v1/resource"}},
+            "response": {{"status": 200, "jsonBody": {{"id": "123", "name": "example"}},
+                          "headers": {{"Content-Type": "application/json"}}}}
+          }}
+        ]
+    """)
+
+    stubs_json_str = await _llm(prompt)
+    try:
+        stubs = _json.loads(stubs_json_str)
+    except _json.JSONDecodeError:
+        # Fallback: generate a minimal stub
+        stubs = [{
+            "request": {"method": "ANY", "urlPattern": ".*"},
+            "response": {"status": 200, "jsonBody": {"message": "WireMock fallback stub"}}
+        }]
+
+    svc_lower = req.external_service_name.lower().replace(" ", "-")
+
+    # Generate docker-compose
+    compose = _textwrap.dedent(f"""
+version: "3.9"
+services:
+  {svc_lower}-mock:
+    image: wiremock/wiremock:3.5.4
+    container_name: {svc_lower}-mock
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./wiremock/mappings/{svc_lower}:/home/wiremock/mappings:ro
+    command:
+      - "--verbose"
+      - "--port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/__admin/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+""").strip()
+
+    # Format each stub as a named mapping file
+    mapping_files: dict[str, str] = {}
+    for i, stub in enumerate(stubs):
+        method = stub.get("request", {}).get("method", "GET").lower()
+        url    = stub.get("request", {}).get("url", f"/endpoint-{i}").replace("/", "_").strip("_")
+        fname  = f"{i+1:02d}_{method}_{url[:40]}.json"
+        mapping_files[fname] = _json.dumps(stub, indent=2)
+
+    return {
+        "project_id": req.project_id,
+        "service_name": req.service_name,
+        "external_service_name": req.external_service_name,
+        "artifacts": {
+            "wiremock_mappings": mapping_files,
+            "wiremock_compose": compose,
+            "stub_count": len(stubs),
+        },
+    }

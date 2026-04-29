@@ -136,3 +136,77 @@ async def get_instructions(
     except Exception as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Instructions not found") from exc
     return {"content": content}
+
+
+# ── G11: Skill Quality Scorer ────────────────────────────────────────────────
+
+_REQUIRED_SKILL_FIELDS = ["name", "description", "category", "version", "instructions_key"]
+_MIN_USE_CASES = 3
+
+@router.get("/{skill_id}/score", response_model=dict)
+async def score_skill(
+    skill_id: uuid.UUID,
+    _c: dict = Depends(require_auth),
+    repo: SkillRepository = Depends(_repo),
+) -> Any:
+    """
+    Phase 07 – G11: Computes a quality score (0–100) for a skill.
+    Score = completeness (40%) × coverage (35%) × testability (25%)
+    """
+    skill = await repo.get_by_id(skill_id)
+    if skill is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    skill_dict = skill.model_dump() if hasattr(skill, "model_dump") else vars(skill)
+
+    # ── Completeness: % of required fields that are present and non-empty ───
+    filled = sum(
+        1 for f in _REQUIRED_SKILL_FIELDS
+        if skill_dict.get(f) not in (None, "", [], {})
+    )
+    completeness = filled / len(_REQUIRED_SKILL_FIELDS)
+
+    # ── Coverage: use cases documented vs minimum 3 ──────────────────────────
+    use_cases = skill_dict.get("use_cases") or []
+    if isinstance(use_cases, str):
+        use_cases = [u.strip() for u in use_cases.split(",") if u.strip()]
+    coverage = min(len(use_cases), _MIN_USE_CASES) / _MIN_USE_CASES
+
+    # ── Testability: examples + acceptance_criteria present ─────────────────
+    has_examples            = bool(skill_dict.get("examples"))
+    has_acceptance_criteria = bool(skill_dict.get("acceptance_criteria"))
+    testability = (0.5 if has_examples else 0.0) + (0.5 if has_acceptance_criteria else 0.0)
+
+    # ── Weighted score ────────────────────────────────────────────────────────
+    score = round((completeness * 0.40 + coverage * 0.35 + testability * 0.25) * 100)
+    grade = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 50 else "F"
+
+    return {
+        "skill_id": str(skill_id),
+        "skill_name": skill_dict.get("name"),
+        "score": score,
+        "grade": grade,
+        "breakdown": {
+            "completeness": {
+                "raw": round(completeness * 100),
+                "weight": 0.40,
+                "contribution": round(completeness * 40),
+                "filled_fields": filled,
+                "required_fields": len(_REQUIRED_SKILL_FIELDS),
+            },
+            "coverage": {
+                "raw": round(coverage * 100),
+                "weight": 0.35,
+                "contribution": round(coverage * 35),
+                "use_cases_count": len(use_cases),
+                "minimum_expected": _MIN_USE_CASES,
+            },
+            "testability": {
+                "raw": round(testability * 100),
+                "weight": 0.25,
+                "contribution": round(testability * 25),
+                "has_examples": has_examples,
+                "has_acceptance_criteria": has_acceptance_criteria,
+            },
+        },
+    }

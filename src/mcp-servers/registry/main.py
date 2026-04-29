@@ -113,3 +113,87 @@ async def invoke_tool(server_id: str, tool_name: str, body: dict):
 @app.get("/health/live")
 async def health():
     return {"status": "ok"}
+
+
+# ── G17: Project Registry MCP Tools ──────────────────────────────────────────
+# Wraps the Project Registry service (http://project-registry.ai-portal.svc:80)
+# as MCP tools callable by Orchestrator agents.
+
+PROJECT_REGISTRY_URL = os.environ.get(
+    "PROJECT_REGISTRY_URL", "http://project-registry.ai-portal.svc:80"
+)
+
+
+class RegisterServiceRequest(BaseModel):
+    project_id: str
+    service_name: str
+    framework: str       # "dotnet" | "angular" | "nodejs" | "python"
+    version: str         # e.g. "9.0", "20.0.0"
+    repo_url: str
+    image_repository: Optional[str] = None
+    namespace: str = "ai-portal"
+
+
+@app.get("/tools/get_project")
+async def tool_get_project(project_id: str):
+    """Returns project detail including registered services."""
+    async with httpx.AsyncClient(timeout=10) as c:
+        r = await c.get(f"{PROJECT_REGISTRY_URL}/api/registry/projects/{project_id}")
+        if r.status_code == 404:
+            raise HTTPException(404, f"Project {project_id} not found")
+        r.raise_for_status()
+        return r.json()
+
+
+@app.get("/tools/list_services")
+async def tool_list_services(framework: Optional[str] = None, environment: Optional[str] = None):
+    """Lists registered services, optionally filtered by framework or environment."""
+    params: dict = {}
+    if framework:
+        params["framework"] = framework
+    if environment:
+        params["environment"] = environment
+    async with httpx.AsyncClient(timeout=10) as c:
+        r = await c.get(f"{PROJECT_REGISTRY_URL}/api/registry/services", params=params)
+        r.raise_for_status()
+        return r.json()
+
+
+@app.get("/tools/get_dependency_graph")
+async def tool_get_dependency_graph(project_id: str):
+    """Returns the dependency graph (nodes + edges) for a project."""
+    async with httpx.AsyncClient(timeout=10) as c:
+        r = await c.get(f"{PROJECT_REGISTRY_URL}/api/registry/projects/{project_id}/dependency-graph")
+        if r.status_code == 404:
+            raise HTTPException(404, f"Project {project_id} not found")
+        r.raise_for_status()
+        return r.json()
+
+
+@app.get("/tools/get_framework_inventory")
+async def tool_get_framework_inventory():
+    """Returns all services with their framework versions and lifecycle compliance status."""
+    async with httpx.AsyncClient(timeout=10) as c:
+        r = await c.get(f"{PROJECT_REGISTRY_URL}/api/registry/services/framework-inventory")
+        r.raise_for_status()
+        return r.json()
+
+
+@app.post("/tools/register_service")
+async def tool_register_service(req: RegisterServiceRequest):
+    """Registers a new service in the Project Registry."""
+    payload = {
+        "name": req.service_name,
+        "project_id": req.project_id,
+        "framework": req.framework,
+        "framework_version": req.version,
+        "repo_url": req.repo_url,
+        "image_repository": req.image_repository or f"harbor.ai.adports.ae/orbit/{req.service_name.lower()}",
+        "namespace": req.namespace,
+    }
+    async with httpx.AsyncClient(timeout=10) as c:
+        r = await c.post(f"{PROJECT_REGISTRY_URL}/api/registry/services", json=payload)
+        if r.status_code == 409:
+            raise HTTPException(409, f"Service '{req.service_name}' already registered")
+        r.raise_for_status()
+        return r.json()

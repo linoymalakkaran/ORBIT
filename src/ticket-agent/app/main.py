@@ -54,6 +54,9 @@ class TicketImplState(TypedDict):
     pr_url: Optional[str]
     pr_review: Optional[dict]
     implementation_notes: Annotated[list[str], operator.add]
+    # G20: source ticket references for transition
+    jira_ticket_id: Optional[str]           # e.g. "ORBIT-123" (Jira)
+    ado_work_item_id: Optional[int]         # e.g. 4521 (Azure DevOps)
 
 
 async def _llm(prompt: str, system: str = "You are a senior full-stack engineer.") -> str:
@@ -195,7 +198,38 @@ async def create_branch_and_pr(state: TicketImplState) -> dict:
     except Exception as e:
         pr_url = f"branch:{branch} (MCP error: {e})"
 
+    # G20: Transition source ticket to "In Review" after PR is created
+    if pr_url and not pr_url.startswith("branch:"):
+        await _transition_ticket(state)
+
     return {"branch_name": branch, "pr_url": pr_url}
+
+
+async def _transition_ticket(state: TicketImplState) -> None:
+    """Phase 22 – G20: Transitions the source Jira/ADO ticket to 'In Review'."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            if state.get("jira_ticket_id"):
+                resp = await client.post(
+                    f"{settings.gitlab_mcp_url.replace('mcp-registry', 'jira-mcp')}/tools/transition_issue",
+                    json={"issue_key": state["jira_ticket_id"], "transition": "In Review"},
+                )
+                if resp.status_code == 200:
+                    logger.info("Transitioned Jira ticket %s to 'In Review'", state["jira_ticket_id"])
+                else:
+                    logger.warning("Jira transition returned %d for %s", resp.status_code, state["jira_ticket_id"])
+
+            if state.get("ado_work_item_id"):
+                resp = await client.post(
+                    f"{settings.gitlab_mcp_url.replace('mcp-registry', 'ado-mcp')}/tools/transition_work_item",
+                    json={"project": state["project_id"], "work_item_id": state["ado_work_item_id"], "state": "In Review"},
+                )
+                if resp.status_code == 200:
+                    logger.info("Transitioned ADO work item %d to 'In Review'", state["ado_work_item_id"])
+                else:
+                    logger.warning("ADO transition returned %d for %d", resp.status_code, state["ado_work_item_id"])
+    except Exception as ex:
+        logger.warning("Ticket transition failed (non-fatal): %s", ex)
 
 
 async def auto_review_pr(state: TicketImplState) -> dict:
@@ -251,6 +285,9 @@ class TicketImplRequest(BaseModel):
     acceptance_criteria: list[str]
     service_name: str
     openapi_stub: str = ""
+    # G20: optional source ticket references for transition
+    jira_ticket_id: Optional[str] = None   # e.g. "ORBIT-123"
+    ado_work_item_id: Optional[int] = None  # e.g. 4521
 
 
 @app.post("/api/implement/ticket")
@@ -272,6 +309,8 @@ async def implement_ticket(req: TicketImplRequest):
         "pr_url": None,
         "pr_review": None,
         "implementation_notes": [],
+        "jira_ticket_id": req.jira_ticket_id,
+        "ado_work_item_id": req.ado_work_item_id,
     }
     result = await _graph.ainvoke(initial)
     try:
