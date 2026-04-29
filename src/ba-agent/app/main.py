@@ -176,13 +176,12 @@ async def sync_to_jira(req: SyncToJiraRequest) -> dict[str, Any]:
         # 2. Create each story under the epic
         for story in stories:
             story_summary = story.get("title") or story.get("summary") or str(story)[:100]
+            # Only pass fields accepted by jira-mcp create_issue tool
             story_body = {
                 "project_key": req.jira_project_key,
                 "issue_type": "Story",
                 "summary": story_summary,
                 "description": story.get("acceptance_criteria") or story.get("description") or "",
-                "parent_key": epic_key,
-                "story_points": story.get("story_points"),
             }
             rs = await c.post(f"{jira_url}/tools/create_issue", json=story_body)
             if rs.status_code in (200, 201):

@@ -28,7 +28,8 @@ class Settings(BaseSettings):
     database_agent_url: str = "http://database-agent.ai-portal.svc:80"
     qa_agent_url: str = "http://qa-agent.ai-portal.svc:80"
     gitlab_mcp_url: str = "http://mcp-registry.ai-portal.svc:80"
-    jira_mcp_url: str = "http://mcp-registry.ai-portal.svc:80"
+    jira_mcp_url: str = "http://jira-mcp.ai-portal.svc:80"
+    ado_mcp_url: str = "http://ado-mcp.ai-portal.svc:80"
     ledger_url: str = "http://pipeline-ledger.ai-portal.svc:80"
     pr_review_url: str = "http://pr-review-agent.ai-portal.svc:80"
 
@@ -211,7 +212,7 @@ async def _transition_ticket(state: TicketImplState) -> None:
         async with httpx.AsyncClient(timeout=10) as client:
             if state.get("jira_ticket_id"):
                 resp = await client.post(
-                    f"{settings.gitlab_mcp_url.replace('mcp-registry', 'jira-mcp')}/tools/transition_issue",
+                    f"{settings.jira_mcp_url}/tools/transition_issue",
                     json={"issue_key": state["jira_ticket_id"], "transition": "In Review"},
                 )
                 if resp.status_code == 200:
@@ -221,7 +222,7 @@ async def _transition_ticket(state: TicketImplState) -> None:
 
             if state.get("ado_work_item_id"):
                 resp = await client.post(
-                    f"{settings.gitlab_mcp_url.replace('mcp-registry', 'ado-mcp')}/tools/transition_work_item",
+                    f"{settings.ado_mcp_url}/tools/transition_work_item",
                     json={"project": state["project_id"], "work_item_id": state["ado_work_item_id"], "state": "In Review"},
                 )
                 if resp.status_code == 200:
