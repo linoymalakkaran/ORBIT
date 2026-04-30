@@ -1,0 +1,49 @@
+## Loki Helm values — k3s profile
+## Chart: grafana/loki
+## Changes from prod:
+##   - storage: MinIO S3 → local filesystem (simpler for single-node k3s)
+##   - storageClass: vsphere-csi → local-path
+##   - image: Harbor → grafana public
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  schema_config:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  limits_config:
+    retention_period: 168h   # 7 days (save disk on single node)
+    ingestion_rate_mb: 8
+    ingestion_burst_size_mb: 16
+
+singleBinary:
+  replicas: 1
+  persistence:
+    storageClass: local-path
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+gateway:
+  enabled: false   # Not needed for single-node
+
+# Promtail — ships pod logs to Loki
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://loki.monitoring.svc:3100/loki/api/v1/push

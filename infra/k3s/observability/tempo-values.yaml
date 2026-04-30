@@ -1,0 +1,24 @@
+## Tempo Helm values — k3s profile
+## Chart: grafana/tempo
+## Changes from prod:
+##   - storage: local-path
+##   - image: public
+
+tempo:
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: local-path

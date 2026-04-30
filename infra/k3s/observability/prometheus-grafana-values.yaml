@@ -1,0 +1,111 @@
+## Prometheus + Grafana Helm values — k3s profile
+## Chart: prometheus-community/kube-prometheus-stack
+## Changes from prod:
+##   - storageClass: vsphere-csi → local-path
+##   - images: Harbor → chart defaults (quay.io/prometheus, grafana public)
+##   - resources: reduced for single node
+##   - retention: 30d → 7d (save disk on single node)
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    retentionSize: 10GiB
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+    additionalScrapeConfigs:
+      - job_name: orbit-services
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - ai-portal
+                - ai-portal-data
+                - litellm
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+
+grafana:
+  adminPassword: "orbit-admin"   # CHANGE: use kubectl secret in production
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClassName: local-path
+  ## k3s: use Traefik IngressRoute OR nodePort — uncomment preferred option:
+  ## Option A — NodePort (access via http://SERVER_IP:30030)
+  service:
+    type: NodePort
+    nodePort: 30030
+  ## Option B — Traefik Ingress (if using k3s built-in Traefik)
+  # ingress:
+  #   enabled: true
+  #   ingressClassName: traefik
+  #   hosts:
+  #     - grafana.YOUR_SERVER_IP.nip.io
+  grafana.ini:
+    server:
+      root_url: "http://%(domain)s:30030/"
+    auth:
+      disable_login_form: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 1Gi
+
+# Reduce replica counts for single-node k3s
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+nodeExporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

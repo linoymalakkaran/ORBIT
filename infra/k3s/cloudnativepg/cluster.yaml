@@ -1,0 +1,44 @@
+## CloudNativePG Cluster — k3s profile
+## Single PostgreSQL instance for all ORBIT services
+## Changes from prod:
+##   - storageClass: vsphere-csi → local-path
+##   - instances: 2 → 1
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: orbit-postgres
+  namespace: ai-portal-data
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  storage:
+    storageClass: local-path
+    size: 10Gi
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "64MB"
+      work_mem: "4MB"
+
+  bootstrap:
+    initdb:
+      database: ai_portal
+      owner: orbit_app
+      secret:
+        name: orbit-postgres-app-secret
+
+  ## Backup disabled for k3s single-node (enable when object storage available)
+  backup:
+    barmanObjectStore: null

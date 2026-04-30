@@ -1,0 +1,58 @@
+## Keycloak Helm values — k3s profile
+## Chart: bitnami/keycloak
+## Changes from prod:
+##   - image: Harbor → bitnami public
+##   - storageClass: vsphere-csi → local-path
+##   - hostname: domain → server IP (nip.io supported)
+##   - resources: reduced
+
+image:
+  registry: docker.io
+  repository: bitnami/keycloak
+  tag: "25.0.6"
+
+replicaCount: 1
+
+auth:
+  adminUser: admin
+  adminPassword: "orbit-keycloak"   # CHANGE before production
+
+extraEnvVars:
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_PROXY
+    value: edge
+  - name: KC_DB
+    value: postgres
+  ## k3s: PostgreSQL deployed in ai-portal-data namespace via CloudNativePG
+  - name: KC_DB_URL
+    value: jdbc:postgresql://orbit-postgres-rw.ai-portal-data.svc.cluster.local:5432/ai_portal_keycloak
+  - name: KC_DB_USERNAME
+    value: orbit_app
+  - name: KC_FEATURES
+    value: token-exchange,fine-grained-authz
+  - name: KC_LOG_LEVEL
+    value: INFO
+  ## k3s: Replace SERVER_IP with your actual server IP
+  - name: KC_HOSTNAME
+    value: "REPLACE_WITH_SERVER_IP"
+
+extraEnvVarsSecret: keycloak-db-creds
+
+## k3s: NodePort for browser access
+service:
+  type: NodePort
+  http:
+    nodePort: 30180
+
+postgresql:
+  enabled: false    # Use external CloudNativePG cluster
+
+persistence:
+  enabled: true
+  storageClass: local-path
+  size: 1Gi
+
+resources:
+  requests: { memory: 256Mi, cpu: 100m }
+  limits:   { memory: 1Gi,   cpu: 500m }

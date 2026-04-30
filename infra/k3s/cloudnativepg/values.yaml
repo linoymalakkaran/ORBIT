@@ -1,0 +1,12 @@
+## CloudNativePG Operator Helm values — k3s profile
+## Chart: cnpg/cloudnative-pg
+## Changes from prod:
+##   - image: Harbor → ghcr.io public
+
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  tag: "1.24.1"
+
+resources:
+  requests: { cpu: 50m, memory: 100Mi }
+  limits:   { cpu: 250m, memory: 200Mi }

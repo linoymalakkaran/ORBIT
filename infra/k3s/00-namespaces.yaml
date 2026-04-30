@@ -1,0 +1,73 @@
+## All namespaces for ORBIT on k3s
+## k3s note: No Harbor pull secret needed — public images used in this profile
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-portal
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-portal-data
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: litellm
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: temporal
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: eventstore
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    orbit.adports.ae/env: k3s
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sovereign-ai
+  labels:
+    orbit.adports.ae/env: k3s
+    orbit.adports.ae/tier: sovereign

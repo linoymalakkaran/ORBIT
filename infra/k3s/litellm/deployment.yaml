@@ -1,0 +1,101 @@
+## LiteLLM Gateway — k3s profile
+## Changes from prod:
+##   - image: Harbor → ghcr.io/berriai/litellm public
+##   - replicas: 2 → 1
+##   - Vault injection removed → use K8s Secret (litellm-env)
+##   - imagePullSecrets removed
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: litellm
+data:
+  litellm-config.yaml: |
+    model_list:
+      ## Azure OpenAI (uncomment and configure if available)
+      # - model_name: gpt-4o
+      #   litellm_params:
+      #     model: azure/gpt-4o
+      #     api_base: os.environ/AZURE_OPENAI_ENDPOINT
+      #     api_key: os.environ/AZURE_OPENAI_KEY
+      #     api_version: "2024-02-01"
+
+      ## Ollama local models (if running ollama on the same server)
+      - model_name: llama3
+        litellm_params:
+          model: ollama/llama3
+          api_base: http://ollama.sovereign-ai.svc:11434
+
+    litellm_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+      drop_params: true
+
+    general_settings:
+      database_url: os.environ/LITELLM_DB_URL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-gateway
+  namespace: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm-gateway
+  template:
+    metadata:
+      labels:
+        app: litellm-gateway
+    spec:
+      serviceAccountName: litellm
+      containers:
+        - name: litellm
+          image: ghcr.io/berriai/litellm:main-latest
+          command: ["litellm"]
+          args: ["--config", "/config/litellm-config.yaml", "--port", "4000"]
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - secretRef:
+                name: litellm-env
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - name: litellm-config
+              mountPath: /config
+      volumes:
+        - name: litellm-config
+          configMap:
+            name: litellm-config
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: litellm
+  namespace: litellm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm-gateway
+  namespace: litellm
+spec:
+  selector:
+    app: litellm-gateway
+  ports:
+    - port: 4000
+      targetPort: 4000

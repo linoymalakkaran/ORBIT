@@ -1,0 +1,65 @@
+## Vault Helm values — k3s profile
+## Chart: hashicorp/vault
+## Changes from prod:
+##   - storageClass: vsphere-csi → local-path
+##   - HA disabled (single node)
+##   - UI exposed via NodePort
+
+server:
+  image:
+    repository: hashicorp/vault
+    tag: "1.17.2"
+
+  dev:
+    enabled: false
+
+  standalone:
+    enabled: true
+    config: |
+      ui = true
+      listener "tcp" {
+        tls_disable     = 1
+        address         = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+      storage "file" {
+        path = "/vault/data"
+      }
+      # Enable Kubernetes auth backend
+      # Run: vault auth enable kubernetes  (done in vault-bootstrap.sh)
+
+  dataStorage:
+    enabled: true
+    size: 2Gi
+    storageClass: local-path
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  ## k3s: expose Vault UI via NodePort
+  service:
+    type: NodePort
+    nodePort: 30082
+
+ui:
+  enabled: true
+  serviceType: NodePort
+  serviceNodePort: 30082
+
+injector:
+  enabled: true
+  image:
+    repository: hashicorp/vault-k8s
+    tag: "1.4.2"
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 128Mi
+      cpu: 250m

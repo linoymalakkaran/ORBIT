@@ -1,0 +1,91 @@
+## Temporal.io Helm values — k3s profile
+## Chart: temporalio/temporal
+## Changes from prod:
+##   - storageClass: vsphere-csi → local-path
+##   - images: Harbor → Docker Hub public
+##   - resources: reduced for single node
+##   - replicaCount: 2 → 1
+
+server:
+  replicaCount: 1
+  image:
+    repository: temporalio/server
+    tag: "1.24.2"
+    pullPolicy: IfNotPresent
+
+admintools:
+  image:
+    repository: temporalio/admin-tools
+    tag: "1.24.2"
+
+web:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: temporalio/ui
+    tag: "2.28.0"
+  ## k3s: NodePort for direct browser access
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30088
+
+cassandra:
+  enabled: false
+
+mysql:
+  enabled: false
+
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16"
+  auth:
+    username: temporal
+    password: temporal          # CHANGE: use kubectl secret
+    database: temporal
+  primary:
+    persistence:
+      storageClass: local-path
+      size: 5Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+elasticsearch:
+  enabled: false
+
+server:
+  config:
+    persistence:
+      default:
+        driver: sql
+        sql:
+          driver: postgres12
+          host: "{{ .Release.Name }}-postgresql"
+          port: 5432
+          database: temporal
+          user: temporal
+          password: temporal      # CHANGE: use existingSecret in production
+      visibility:
+        driver: sql
+        sql:
+          driver: postgres12
+          host: "{{ .Release.Name }}-postgresql"
+          port: 5432
+          database: temporal
+          user: temporal
+          password: temporal      # CHANGE: use existingSecret in production
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

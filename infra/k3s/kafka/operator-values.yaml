@@ -1,0 +1,17 @@
+## Strimzi Operator Helm values — k3s profile
+## Uses public images from quay.io/strimzi instead of Harbor
+
+image:
+  registry: quay.io
+  repository: strimzi/operator
+  tag: "0.41.0"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+logLevel: INFO

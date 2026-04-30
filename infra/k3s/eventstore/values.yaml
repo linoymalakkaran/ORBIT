@@ -1,0 +1,21 @@
+## EventStoreDB Helm values — k3s profile
+## Chart: eventstore/eventstore
+## Changes from prod:
+##   - storageClass: vsphere-csi → local-path
+##   - image: Harbor → public eventstore/eventstore
+
+image:
+  repository: eventstore/eventstore
+  tag: "24.10.1-bookworm-slim"
+clusterSize: 1
+eventStoreConfig:
+  EVENTSTORE_INSECURE: "true"
+  EVENTSTORE_MEM_DB: "false"
+  EVENTSTORE_RUN_PROJECTIONS: "System"
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: local-path
+resources:
+  requests: { memory: 256Mi, cpu: 100m }
+  limits:   { memory: 512Mi, cpu: 250m }

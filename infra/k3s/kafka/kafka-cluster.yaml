@@ -1,0 +1,96 @@
+## Strimzi Kafka — k3s single-node profile
+## Changes from prod:
+##   - replicas: 3 → 1 (single node)
+##   - storageClass: vsphere-csi → local-path (k3s built-in)
+##   - replication factors → 1
+##   - images: Harbor → Strimzi public (strimzi/kafka)
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: orbit-kafka
+  namespace: kafka
+spec:
+  kafka:
+    version: 3.7.0
+    replicas: 1
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+    config:
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+      transaction.state.log.min.isr: 1
+      default.replication.factor: 1
+      min.insync.replicas: 1
+      log.retention.hours: 168
+    storage:
+      type: persistent-claim
+      size: 10Gi
+      class: local-path
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 250m
+      limits:
+        memory: 2Gi
+        cpu: "1"
+  zookeeper:
+    replicas: 1
+    storage:
+      type: persistent-claim
+      size: 2Gi
+      class: local-path
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 250m
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: orbit-pipeline-events
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: orbit-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 604800000   # 7 days
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: orbit-agent-tasks
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: orbit-kafka
+spec:
+  partitions: 3
+  replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: orbit-audit-events
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: orbit-kafka
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    retention.ms: 2592000000  # 30 days

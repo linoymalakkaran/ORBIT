@@ -1,0 +1,76 @@
+## NetworkPolicies — k3s profile
+##
+## IMPORTANT: k3s uses Flannel CNI by default which does NOT support
+## NetworkPolicies. You have two options:
+##
+##   Option A (recommended): Install k3s with Cilium CNI instead of Flannel:
+##     curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--flannel-backend=none \
+##       --disable-network-policy" sh -
+##     Then install Cilium: helm install cilium cilium/cilium -n kube-system
+##
+##   Option B: Apply these policies after switching to Calico:
+##     kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+##
+## If you keep default Flannel, these policies are created but NOT enforced.
+## For local single-node dev/test, Flannel without NetworkPolicies is acceptable.
+
+---
+# Allow all traffic within namespace (k3s dev default — tighten for prod)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-same-namespace
+  namespace: ai-portal
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector: {}   # same namespace
+  egress:
+    - to:
+        - podSelector: {}   # same namespace
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+# Allow monitoring namespace to scrape metrics
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring-scrape
+  namespace: ai-portal
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 2112    # metrics
+        - port: 8080    # HTTP
+---
+# Allow Kong ingress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: ai-portal
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kong
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system   # Traefik (k3s default)
